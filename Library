@@ -1,0 +1,132 @@
+local Library = {}
+Library.__index = Library
+
+function Library:CreateWindow(titleText)
+	local self = setmetatable({}, Library)
+
+	local gui = Instance.new("ScreenGui")
+	local main = Instance.new("Frame")
+	local title = Instance.new("TextLabel")
+	local close = Instance.new("TextButton")
+	local pages = Instance.new("Frame")
+
+	gui.Name = "LibraryUI"
+	gui.Parent = game.CoreGui
+	gui.ResetOnSpawn = false
+
+	main.Name = "Main"
+	main.Parent = gui
+	main.Size = UDim2.new(0, 300, 0, 400)
+	main.Position = UDim2.new(0.5, -150, 0.5, -200)
+	main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	main.BorderSizePixel = 0
+
+	title.Name = "Title"
+	title.Parent = main
+	title.Size = UDim2.new(1, -40, 0, 40)
+	title.Position = UDim2.new(0, 0, 0, 0)
+	title.BackgroundTransparency = 1
+	title.Text = titleText or "Library"
+	title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	title.Font = Enum.Font.SourceSansSemibold
+	title.TextSize = 20
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.PaddingLeft = UDim.new(0, 10)
+
+	close.Name = "Close"
+	close.Parent = main
+	close.Size = UDim2.new(0, 40, 0, 40)
+	close.Position = UDim2.new(1, -40, 0, 0)
+	close.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	close.Text = "X"
+	close.TextColor3 = Color3.fromRGB(255, 255, 255)
+	close.Font = Enum.Font.SourceSans
+	close.TextSize = 20
+	close.BorderSizePixel = 0
+
+	pages.Name = "Pages"
+	pages.Parent = main
+	pages.Size = UDim2.new(1, -20, 1, -60)
+	pages.Position = UDim2.new(0, 10, 0, 50)
+	pages.BackgroundTransparency = 1
+
+	close.MouseButton1Click:Connect(function()
+		gui:Destroy()
+	end)
+
+	self.Gui = gui
+	self.Pages = pages
+	self.CurrentPage = nil
+	self.PagesList = {}
+
+	return self
+end
+
+function Library:CreatePage(name)
+	local page = Instance.new("Frame")
+	page.Name = name
+	page.Size = UDim2.new(1, 0, 1, 0)
+	page.BackgroundTransparency = 1
+	page.Visible = false
+	page.Parent = self.Pages
+
+	self.PagesList[name] = page
+	if not self.CurrentPage then
+		page.Visible = true
+		self.CurrentPage = page
+	end
+
+	return page
+end
+
+function Library:SwitchPage(name)
+	for _, p in pairs(self.PagesList) do
+		p.Visible = false
+	end
+	if self.PagesList[name] then
+		self.PagesList[name].Visible = true
+		self.CurrentPage = self.PagesList[name]
+	end
+end
+
+function Library:CreateButton(page, text, callback)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(1, 0, 0, 40)
+	button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	button.Text = text
+	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.Font = Enum.Font.SourceSans
+	button.TextSize = 18
+	button.BorderSizePixel = 0
+	button.Parent = page
+
+	button.MouseButton1Click:Connect(function()
+		if callback then callback() end
+	end)
+
+	return button
+end
+
+function Library:CreateToggle(page, text, callback)
+	local toggle = Instance.new("TextButton")
+	local state = false
+
+	toggle.Size = UDim2.new(1, 0, 0, 40)
+	toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	toggle.Text = "[ OFF ] " .. text
+	toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+	toggle.Font = Enum.Font.SourceSans
+	toggle.TextSize = 18
+	toggle.BorderSizePixel = 0
+	toggle.Parent = page
+
+	toggle.MouseButton1Click:Connect(function()
+		state = not state
+		toggle.Text = (state and "[ ON ] " or "[ OFF ] ") .. text
+		if callback then callback(state) end
+	end)
+
+	return toggle
+end
+
+return Library
