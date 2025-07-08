@@ -1,33 +1,3 @@
-local function updateTheme()
-	local colors = getColors()
-	main.BackgroundColor3 = colors.Background
-	header.BackgroundColor3 = colors.Surface
-	headerSeparator.BackgroundColor3 = colors.Border
-	titleText.TextColor3 = colors.Text
-	themeBtn.BackgroundColor3 = colors.Surface2
-	themeBtn.TextColor3 = colors.TextMuted
-	closeBtn.BackgroundColor3 = colors.Surface2
-	closeBtn.TextColor3 = colors.TextMuted
-
-	for _, stroke in pairs({ main:FindFirstChild('UIStroke') }) do
-		if stroke then
-			stroke.Color = colors.Border
-		end
-	end
-
-	for _, page in pairs(window.Pages) do
-		if page._button then
-			if window.CurrentPage == page then
-				page._button.BackgroundColor3 = colors.Primary
-				page._button.TextColor3 = colors.Surface
-			else
-				page._button.BackgroundColor3 = colors.Surface2
-				page._button.TextColor3 = colors.TextSecondary
-			end
-		end
-	end
-end
-
 local MinimalGUI = {}
 local TweenService = game:GetService('TweenService')
 local UserInputService = game:GetService('UserInputService')
@@ -131,6 +101,36 @@ function MinimalGUI:CreateWindow(title, size)
 
 	local function getColors()
 		return window._isDarkTheme and Config.Colors.Dark or Config.Colors.Light
+	end
+
+	local function updateTheme()
+		local colors = getColors()
+		main.BackgroundColor3 = colors.Background
+		header.BackgroundColor3 = colors.Surface
+		headerSeparator.BackgroundColor3 = colors.Border
+		titleText.TextColor3 = colors.Text
+		themeBtn.BackgroundColor3 = colors.Surface2
+		themeBtn.TextColor3 = colors.TextMuted
+		closeBtn.BackgroundColor3 = colors.Surface2
+		closeBtn.TextColor3 = colors.TextMuted
+
+		for _, stroke in pairs({ main:FindFirstChild('UIStroke') }) do
+			if stroke then
+				stroke.Color = colors.Border
+			end
+		end
+
+		for _, page in pairs(window.Pages) do
+			if page._button then
+				if window.CurrentPage == page then
+					page._button.BackgroundColor3 = colors.Primary
+					page._button.TextColor3 = colors.Surface
+				else
+					page._button.BackgroundColor3 = colors.Surface2
+					page._button.TextColor3 = colors.TextSecondary
+				end
+			end
+		end
 	end
 
 	local gui = Instance.new('ScreenGui')
@@ -508,7 +508,7 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local container = Instance.new('Frame')
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight + 20)
-			container.BackgroundColor3 = Config.Colors.Surface
+			container.BackgroundColor3 = getColors().Surface
 			container.BorderSizePixel = 0
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.md)
@@ -620,7 +620,7 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local container = Instance.new('Frame')
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
-			container.BackgroundColor3 = Config.Colors.Surface
+			container.BackgroundColor3 = getColors().Surface
 			container.BorderSizePixel = 0
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.md)
@@ -672,7 +672,7 @@ function MinimalGUI:CreateWindow(title, size)
 			local optionsList = Instance.new('Frame')
 			optionsList.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 0)
 			optionsList.Position = UDim2.new(0.4, 0, 1, 2)
-			optionsList.BackgroundColor3 = Config.Colors.Surface
+			optionsList.BackgroundColor3 = getColors().Surface
 			optionsList.BorderSizePixel = 0
 			optionsList.Visible = false
 			optionsList.ZIndex = 1000
@@ -709,7 +709,7 @@ function MinimalGUI:CreateWindow(title, size)
 			for i, option in ipairs(options) do
 				local optionBtn = Instance.new('TextButton')
 				optionBtn.Size = UDim2.new(1, 0, 0, 28)
-				optionBtn.BackgroundColor3 = Config.Colors.Surface
+				optionBtn.BackgroundColor3 = getColors().Surface
 				optionBtn.BackgroundTransparency = 1
 				optionBtn.BorderSizePixel = 0
 				optionBtn.Text = ''
