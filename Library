@@ -269,6 +269,7 @@ function MinimalGUI:CreateWindow(title, size)
 	themeBtnStroke.Thickness = 1
 	themeBtnStroke.Transparency = 1
 	themeBtnStroke.Color = window:getColors().PrimaryHover
+	themeBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	themeBtnStroke.Parent = themeBtn
 
 	themeBtn.MouseEnter:Connect(function()
@@ -307,6 +308,7 @@ function MinimalGUI:CreateWindow(title, size)
 	local closeBtnStroke = Instance.new('UIStroke')
 	closeBtnStroke.Thickness = 1
 	closeBtnStroke.Transparency = 1
+	closeBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	closeBtnStroke.Color = window:getColors().Danger
 	closeBtnStroke.Parent = closeBtn
 
@@ -426,7 +428,7 @@ function MinimalGUI:CreateWindow(title, size)
 		tabBtnStroke.Thickness = 1
 		tabBtnStroke.Transparency = 1
 		tabBtnStroke.Color = window:getColors().PrimaryHover
-tabBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		tabBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 		tabBtnStroke.Parent = tabBtn
 
 		local pageFrame = Instance.new('ScrollingFrame')
@@ -521,6 +523,7 @@ tabBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			btnStroke.Thickness = 1
 			btnStroke.Transparency = 1
 			btnStroke.Color = window:getColors().PrimaryHover
+			toggleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			btnStroke.Parent = btn
 
 			btn.MouseEnter:Connect(function()
@@ -695,6 +698,7 @@ tabBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			trackStroke.Thickness = 1
 			trackStroke.Transparency = 1
 			trackStroke.Color = window:getColors().PrimaryHover
+			trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			trackStroke.Parent = track
 
 			local fill = Instance.new('Frame')
@@ -786,6 +790,7 @@ tabBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			dropdownStroke.Thickness = 1
 			dropdownStroke.Transparency = 1
 			dropdownStroke.Color = window:getColors().PrimaryHover
+			dropdownStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			dropdownStroke.Parent = dropdown
 
 			local valueText = Instance.new('TextLabel')
