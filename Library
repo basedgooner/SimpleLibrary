@@ -550,7 +550,7 @@ function MinimalGUI:CreateWindow(title, size)
 				1,
 				-Config.Spacing.lg - 4
 			)
-			track.BackgroundColor3 = Config.Colors.Surface3
+			track.BackgroundColor3 = getColors().Surface3
 			track.BorderSizePixel = 0
 			track.Text = ''
 			track.Parent = container
