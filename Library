@@ -203,7 +203,7 @@ function MinimalGUI:CreateWindow(title, size)
 		themeBtn.Text = window._isDarkTheme and '🌙' or '☀'
 		updateTheme()
 	end)
-	
+
 	local closeBtn = Instance.new('TextButton')
 	closeBtn.Size = UDim2.new(0, 28, 0, 28)
 	closeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 28, 0, 14)
@@ -323,7 +323,7 @@ function MinimalGUI:CreateWindow(title, size)
 		pageFrame.BackgroundTransparency = 1
 		pageFrame.BorderSizePixel = 0
 		pageFrame.ScrollBarThickness = 4
-		pageFrame.ScrollBarImageColor3 = Config.Colors.Primary
+		pageFrame.ScrollBarImageColor3 = getColors().Primary
 		pageFrame.ScrollBarImageTransparency = 0.3
 		pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 		pageFrame.Visible = false
@@ -689,18 +689,9 @@ function MinimalGUI:CreateWindow(title, size)
 				local targetHeight = isOpen and (#options * 28) or 0
 
 				optionsList.Visible = true
-				Tween(
-					optionsList,
-					{
-						Size = UDim2.new(
-							0.6,
-							-Config.Spacing.lg,
-							0,
-							targetHeight
-						),
-					},
-					Config.Animation.Medium
-				):Play()
+				Tween(optionsList, {
+					Size = UDim2.new(0.6, -Config.Spacing.lg, 0, targetHeight),
+				}, Config.Animation.Medium):Play()
 				Tween(
 					arrow,
 					{ Rotation = isOpen and 180 or 0 },
@@ -737,14 +728,10 @@ function MinimalGUI:CreateWindow(title, size)
 				optionText.Parent = optionBtn
 
 				optionBtn.MouseEnter:Connect(function()
-					Tween(
-						optionBtn,
-						{
-							BackgroundTransparency = 0,
-							BackgroundColor3 = Config.Colors.Surface2,
-						},
-						Config.Animation.Fast
-					):Play()
+					Tween(optionBtn, {
+						BackgroundTransparency = 0,
+						BackgroundColor3 = Config.Colors.Surface2,
+					}, Config.Animation.Fast):Play()
 				end)
 				optionBtn.MouseLeave:Connect(function()
 					Tween(
