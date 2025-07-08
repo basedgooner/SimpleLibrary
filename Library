@@ -23,7 +23,9 @@ function page:CreateSlider(text, min, max, defaultValue, callback)
 			label.Text = text
 			label.TextColor3 = getColors().Text
 			label.TextSize = 14
-			label.Font = Config.	local function updateTheme()
+			label.Font = Config.Fonts.Regular
+
+local function updateTheme()
 		local colors = getColors()
 		main.BackgroundColor3 = colors.Background
 		header.BackgroundColor3 = colors.Surface
