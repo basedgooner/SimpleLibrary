@@ -1,26 +1,115 @@
-local MinimalGUI = {}
+function page:CreateSlider(text, min, max, defaultValue, callback)
+			min, max = min or 0, max or 100
+			local value = defaultValue or min
+
+			local container = Instance.new('Frame')
+			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight + 20)
+			container.BackgroundColor3 = getColors().Surface
+			container.BorderSizePixel = 0
+			container.Parent = pageFrame
+			Corner(container, Config.Radius.lg)
+			Stroke(container, getColors().Border)
+
+			local headerFrame = Instance.new('Frame')
+			headerFrame.Size = UDim2.new(1, 0, 0, 24)
+			headerFrame.Position = UDim2.new(0, 0, 0, Config.Spacing.md)
+			headerFrame.BackgroundTransparency = 1
+			headerFrame.Parent = container
+
+			local label = Instance.new('TextLabel')
+			label.Size = UDim2.new(1, -60, 1, 0)
+			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = getColors().Text
+			label.TextSize = 14
+			label.Font = Config.	local function updateTheme()
+		local colors = getColors()
+		main.BackgroundColor3 = colors.Background
+		header.BackgroundColor3 = colors.Surface
+		headerSeparator.BackgroundColor3 = colors.Border
+		titleText.TextColor3 = colors.Text
+		themeBtn.BackgroundColor3 = colors.Surface2
+		themeBtn.TextColor3 = colors.TextMuted
+		closeBtn.BackgroundColor3 = colors.Surface2
+		closeBtn.TextColor3 = colors.TextMuted
+		
+		for _, stroke in pairs({main:FindFirstChild('UIStroke')}) do
+			if stroke then stroke.Color = colors.Border end
+		end
+		
+		for _, page in pairs(window.Pages) do
+			if page._button then
+				if window.CurrentPage == page then
+					page._button.BackgroundColor3 = colors.Primary
+					page._button.TextColor3 = colors.Surface
+				else
+					page._button.BackgroundColor3 = colors.Surface2
+					page._button.TextColor3 = colors.TextSecondary
+				end
+			end
+		end
+	end
+
+	themeBtn.MouseEnter:Connect(function()
+		Tween(themeBtn, { 
+			BackgroundColor3 = getColors().Surface3, 
+			TextColor3 = getColors().Text
+		}, Config.Animation.Fast):Play()
+	end)
+	themeBtn.MouseLeave:Connect(function()
+		Tween(themeBtn, { 
+			BackgroundColor3 = getColors().Surface2, 
+			TextColor3 = getColors().TextMuted
+		}, Config.Animation.Fast):Play()
+	end)
+	themeBtn.MouseButton1Click:Connect(function()
+		window._isDarkTheme = not window._isDarkTheme
+		themeBtn.Text = window._isDarkTheme and '🌙' or '☀'
+		updateTheme()
+	end)local MinimalGUI = {}
 local TweenService = game:GetService('TweenService')
 local UserInputService = game:GetService('UserInputService')
 local CoreGui = game:GetService('CoreGui')
 
 local Config = {
 	Colors = {
-		Background = Color3.fromRGB(250, 250, 252),
-		Surface = Color3.fromRGB(255, 255, 255),
-		Surface2 = Color3.fromRGB(248, 249, 251),
-		Surface3 = Color3.fromRGB(241, 245, 249),
-		Primary = Color3.fromRGB(79, 70, 229),
-		PrimaryHover = Color3.fromRGB(99, 102, 241),
-		PrimaryDim = Color3.fromRGB(67, 56, 202),
-		Text = Color3.fromRGB(15, 23, 42),
-		TextSecondary = Color3.fromRGB(71, 85, 105),
-		TextMuted = Color3.fromRGB(148, 163, 184),
-		Success = Color3.fromRGB(34, 197, 94),
-		Danger = Color3.fromRGB(239, 68, 68),
-		Warning = Color3.fromRGB(251, 146, 60),
-		Border = Color3.fromRGB(226, 232, 240),
-		BorderLight = Color3.fromRGB(203, 213, 225),
-		Accent = Color3.fromRGB(147, 51, 234)
+		Light = {
+			Background = Color3.fromRGB(250, 250, 252),
+			Surface = Color3.fromRGB(255, 255, 255),
+			Surface2 = Color3.fromRGB(248, 249, 251),
+			Surface3 = Color3.fromRGB(241, 245, 249),
+			Primary = Color3.fromRGB(79, 70, 229),
+			PrimaryHover = Color3.fromRGB(99, 102, 241),
+			PrimaryDim = Color3.fromRGB(67, 56, 202),
+			Text = Color3.fromRGB(15, 23, 42),
+			TextSecondary = Color3.fromRGB(71, 85, 105),
+			TextMuted = Color3.fromRGB(148, 163, 184),
+			Success = Color3.fromRGB(34, 197, 94),
+			Danger = Color3.fromRGB(239, 68, 68),
+			Warning = Color3.fromRGB(251, 146, 60),
+			Border = Color3.fromRGB(226, 232, 240),
+			BorderLight = Color3.fromRGB(203, 213, 225),
+			Accent = Color3.fromRGB(147, 51, 234)
+		},
+		Dark = {
+			Background = Color3.fromRGB(15, 15, 20),
+			Surface = Color3.fromRGB(25, 25, 32),
+			Surface2 = Color3.fromRGB(30, 30, 38),
+			Surface3 = Color3.fromRGB(35, 35, 45),
+			Primary = Color3.fromRGB(99, 102, 241),
+			PrimaryHover = Color3.fromRGB(129, 132, 255),
+			PrimaryDim = Color3.fromRGB(79, 82, 220),
+			Text = Color3.fromRGB(240, 240, 245),
+			TextSecondary = Color3.fromRGB(160, 170, 180),
+			TextMuted = Color3.fromRGB(120, 130, 140),
+			Success = Color3.fromRGB(34, 197, 94),
+			Danger = Color3.fromRGB(239, 68, 68),
+			Warning = Color3.fromRGB(251, 146, 60),
+			Border = Color3.fromRGB(55, 55, 70),
+			BorderLight = Color3.fromRGB(65, 65, 80),
+			Accent = Color3.fromRGB(147, 51, 234)
+		}
 	},
 	Fonts = {
 		Regular = Enum.Font.Gotham,
@@ -28,7 +117,7 @@ local Config = {
 		Bold = Enum.Font.GothamBold,
 	},
 	Spacing = { xs = 4, sm = 8, md = 12, lg = 16, xl = 24 },
-	Radius = { sm = 4, md = 6, lg = 8, xl = 12 },
+	Radius = { sm = 20, md = 24, lg = 28, xl = 32 },
 	Animation = { Fast = 0.12, Medium = 0.2, Slow = 0.3 },
 	Layout = {
 		RowHeight = 48,
@@ -65,7 +154,11 @@ function MinimalGUI:CreateWindow(title, size)
 	title = title or 'MinimalGUI'
 	size = size or UDim2.new(0, Config.Layout.MaxWidth, 0, Config.Layout.MaxHeight)
 
-	local window = { Pages = {}, CurrentPage = nil, _connections = {} }
+	local window = { Pages = {}, CurrentPage = nil, _connections = {}, _isDarkTheme = false }
+	
+	local function getColors()
+		return window._isDarkTheme and Config.Colors.Dark or Config.Colors.Light
+	end
 
 	local gui = Instance.new('ScreenGui')
 	gui.Name = 'MinimalGUI'
@@ -77,15 +170,15 @@ function MinimalGUI:CreateWindow(title, size)
 	main.Size = size
 	main.Position = UDim2.new(0.5, 0, 0.5, 0)
 	main.AnchorPoint = Vector2.new(0.5, 0.5)
-	main.BackgroundColor3 = Config.Colors.Background
+	main.BackgroundColor3 = getColors().Background
 	main.BorderSizePixel = 0
 	main.Parent = gui
 	Corner(main, Config.Radius.xl)
-	Stroke(main, Config.Colors.Border, 1.5)
+	Stroke(main, getColors().Border, 1.5)
 
 	local header = Instance.new('Frame')
 	header.Size = UDim2.new(1, 0, 0, 56)
-	header.BackgroundColor3 = Config.Colors.Surface
+	header.BackgroundColor3 = getColors().Surface
 	header.BorderSizePixel = 0
 	header.Parent = main
 	Corner(header, Config.Radius.xl)
@@ -93,7 +186,7 @@ function MinimalGUI:CreateWindow(title, size)
 	local headerSeparator = Instance.new('Frame')
 	headerSeparator.Size = UDim2.new(1, -40, 0, 1)
 	headerSeparator.Position = UDim2.new(0, 20, 1, -1)
-	headerSeparator.BackgroundColor3 = Config.Colors.Border
+	headerSeparator.BackgroundColor3 = getColors().Border
 	headerSeparator.BorderSizePixel = 0
 	headerSeparator.Parent = header
 
@@ -102,34 +195,46 @@ function MinimalGUI:CreateWindow(title, size)
 	titleText.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 18)
 	titleText.BackgroundTransparency = 1
 	titleText.Text = title
-	titleText.TextColor3 = Config.Colors.Text
+	titleText.TextColor3 = getColors().Text
 	titleText.TextSize = 15
 	titleText.Font = Config.Fonts.Bold
 	titleText.TextXAlignment = Enum.TextXAlignment.Left
 	titleText.Parent = header
 
+	local themeBtn = Instance.new('TextButton')
+	themeBtn.Size = UDim2.new(0, 28, 0, 28)
+	themeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 62, 0, 14)
+	themeBtn.BackgroundColor3 = getColors().Surface2
+	themeBtn.BorderSizePixel = 0
+	themeBtn.Text = '☀'
+	themeBtn.TextColor3 = getColors().TextMuted
+	themeBtn.TextSize = 14
+	themeBtn.Font = Config.Fonts.Medium
+	themeBtn.Parent = header
+	Corner(themeBtn, 14)
+
 	local closeBtn = Instance.new('TextButton')
 	closeBtn.Size = UDim2.new(0, 28, 0, 28)
 	closeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 28, 0, 14)
-	closeBtn.BackgroundColor3 = Config.Colors.Surface2
+	closeBtn.BackgroundColor3 = getColors().Surface2
 	closeBtn.BorderSizePixel = 0
 	closeBtn.Text = '×'
-	closeBtn.TextColor3 = Config.Colors.TextMuted
+	closeBtn.TextColor3 = getColors().TextMuted
 	closeBtn.TextSize = 16
 	closeBtn.Font = Config.Fonts.Medium
 	closeBtn.Parent = header
-	Corner(closeBtn, Config.Radius.sm)
+	Corner(closeBtn, 14)
 
 	closeBtn.MouseEnter:Connect(function()
 		Tween(closeBtn, { 
-			BackgroundColor3 = Config.Colors.Danger, 
-			TextColor3 = Config.Colors.Surface
+			BackgroundColor3 = getColors().Danger, 
+			TextColor3 = getColors().Surface
 		}, Config.Animation.Fast):Play()
 	end)
 	closeBtn.MouseLeave:Connect(function()
 		Tween(closeBtn, { 
-			BackgroundColor3 = Config.Colors.Surface2, 
-			TextColor3 = Config.Colors.TextMuted
+			BackgroundColor3 = getColors().Surface2, 
+			TextColor3 = getColors().TextMuted
 		}, Config.Animation.Fast):Play()
 	end)
 	closeBtn.MouseButton1Click:Connect(function()
@@ -154,8 +259,8 @@ function MinimalGUI:CreateWindow(title, size)
 	tabLayout.Parent = tabContainer
 
 	local content = Instance.new('Frame')
-	content.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 1, -112)
-	content.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 112)
+	content.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 1, -116)
+	content.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 116)
 	content.BackgroundTransparency = 1
 	content.Parent = main
 
@@ -191,15 +296,15 @@ function MinimalGUI:CreateWindow(title, size)
 		local tabBtn = Instance.new('TextButton')
 		tabBtn.Size = UDim2.new(0, 0, 0, 32)
 		tabBtn.AutomaticSize = Enum.AutomaticSize.X
-		tabBtn.BackgroundColor3 = Config.Colors.Surface2
+		tabBtn.BackgroundColor3 = getColors().Surface2
 		tabBtn.BorderSizePixel = 0
 		tabBtn.Text = name
-		tabBtn.TextColor3 = Config.Colors.TextSecondary
+		tabBtn.TextColor3 = getColors().TextSecondary
 		tabBtn.TextSize = 13
 		tabBtn.Font = Config.Fonts.Medium
 		tabBtn.LayoutOrder = #window.Pages + 1
 		tabBtn.Parent = tabContainer
-		Corner(tabBtn, Config.Radius.sm)
+		Corner(tabBtn, 16)
 
 		local tabPadding = Instance.new('UIPadding')
 		tabPadding.PaddingLeft = UDim.new(0, 12)
@@ -235,26 +340,26 @@ function MinimalGUI:CreateWindow(title, size)
 			for _, p in pairs(window.Pages) do
 				p._frame.Visible = false
 				Tween(p._button, { 
-					BackgroundColor3 = Config.Colors.Surface2, 
-					TextColor3 = Config.Colors.TextSecondary
+					BackgroundColor3 = getColors().Surface2, 
+					TextColor3 = getColors().TextSecondary
 				}, Config.Animation.Medium):Play()
 			end
 			pageFrame.Visible = true
 			Tween(tabBtn, { 
-				BackgroundColor3 = Config.Colors.Primary, 
-				TextColor3 = Config.Colors.Surface
+				BackgroundColor3 = getColors().Primary, 
+				TextColor3 = getColors().Surface
 			}, Config.Animation.Medium):Play()
 			window.CurrentPage = page
 		end)
 
 		tabBtn.MouseEnter:Connect(function()
 			if window.CurrentPage ~= page then
-				Tween(tabBtn, { BackgroundColor3 = Config.Colors.Surface3 }, Config.Animation.Fast):Play()
+				Tween(tabBtn, { BackgroundColor3 = getColors().Surface3 }, Config.Animation.Fast):Play()
 			end
 		end)
 		tabBtn.MouseLeave:Connect(function()
 			if window.CurrentPage ~= page then
-				Tween(tabBtn, { BackgroundColor3 = Config.Colors.Surface2 }, Config.Animation.Fast):Play()
+				Tween(tabBtn, { BackgroundColor3 = getColors().Surface2 }, Config.Animation.Fast):Play()
 			end
 		end)
 
@@ -269,25 +374,25 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local btn = Instance.new('TextButton')
 			btn.Size = UDim2.new(1, 0, 1, 0)
-			btn.BackgroundColor3 = Config.Colors.Primary
+			btn.BackgroundColor3 = getColors().Primary
 			btn.BorderSizePixel = 0
 			btn.Text = text
-			btn.TextColor3 = Config.Colors.Surface
+			btn.TextColor3 = getColors().Surface
 			btn.TextSize = 14
 			btn.Font = Config.Fonts.Medium
 			btn.Parent = container
-			Corner(btn, Config.Radius.md)
+			Corner(btn, Config.Radius.lg)
 
 			btn.MouseEnter:Connect(function()
-				Tween(btn, { BackgroundColor3 = Config.Colors.PrimaryHover }, Config.Animation.Fast):Play()
+				Tween(btn, { BackgroundColor3 = getColors().PrimaryHover }, Config.Animation.Fast):Play()
 			end)
 			btn.MouseLeave:Connect(function()
-				Tween(btn, { BackgroundColor3 = Config.Colors.Primary }, Config.Animation.Fast):Play()
+				Tween(btn, { BackgroundColor3 = getColors().Primary }, Config.Animation.Fast):Play()
 			end)
 			btn.MouseButton1Click:Connect(function()
-				Tween(btn, { BackgroundColor3 = Config.Colors.PrimaryDim }, Config.Animation.Fast):Play()
+				Tween(btn, { BackgroundColor3 = getColors().PrimaryDim }, Config.Animation.Fast):Play()
 				task.wait(0.06)
-				Tween(btn, { BackgroundColor3 = Config.Colors.Primary }, Config.Animation.Fast):Play()
+				Tween(btn, { BackgroundColor3 = getColors().Primary }, Config.Animation.Fast):Play()
 				if callback then callback() end
 			end)
 
@@ -300,18 +405,18 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local container = Instance.new('Frame')
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
-			container.BackgroundColor3 = Config.Colors.Surface
+			container.BackgroundColor3 = getColors().Surface
 			container.BorderSizePixel = 0
 			container.Parent = pageFrame
-			Corner(container, Config.Radius.md)
-			Stroke(container, Config.Colors.Border)
+			Corner(container, Config.Radius.lg)
+			Stroke(container, getColors().Border)
 
 			local label = Instance.new('TextLabel')
 			label.Size = UDim2.new(1, -70, 1, 0)
 			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
 			label.BackgroundTransparency = 1
 			label.Text = text
-			label.TextColor3 = Config.Colors.Text
+			label.TextColor3 = getColors().Text
 			label.TextSize = 14
 			label.Font = Config.Fonts.Regular
 			label.TextXAlignment = Enum.TextXAlignment.Left
@@ -320,7 +425,7 @@ function MinimalGUI:CreateWindow(title, size)
 			local toggle = Instance.new('TextButton')
 			toggle.Size = UDim2.new(0, 44, 0, 22)
 			toggle.Position = UDim2.new(1, -Config.Spacing.lg - 44, 0.5, -11)
-			toggle.BackgroundColor3 = value and Config.Colors.Primary or Config.Colors.Surface3
+			toggle.BackgroundColor3 = value and getColors().Primary or getColors().Surface3
 			toggle.BorderSizePixel = 0
 			toggle.Text = ''
 			toggle.Parent = container
@@ -329,7 +434,7 @@ function MinimalGUI:CreateWindow(title, size)
 			local thumb = Instance.new('Frame')
 			thumb.Size = UDim2.new(0, 18, 0, 18)
 			thumb.Position = value and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
-			thumb.BackgroundColor3 = Config.Colors.Surface
+			thumb.BackgroundColor3 = getColors().Surface
 			thumb.BorderSizePixel = 0
 			thumb.Parent = toggle
 			Corner(thumb, 9)
@@ -337,7 +442,7 @@ function MinimalGUI:CreateWindow(title, size)
 			toggle.MouseButton1Click:Connect(function()
 				value = not value
 				Tween(toggle, { 
-					BackgroundColor3 = value and Config.Colors.Primary or Config.Colors.Surface3 
+					BackgroundColor3 = value and getColors().Primary or getColors().Surface3 
 				}, Config.Animation.Medium):Play()
 				Tween(thumb, { 
 					Position = value and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9) 
