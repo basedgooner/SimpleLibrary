@@ -51,12 +51,13 @@ local Config = {
 	Radius = { sm = 20, md = 24, lg = 28, xl = 32 },
 	Animation = { Fast = 0.12, Medium = 0.2, Slow = 0.3 },
 	Layout = {
-		RowHeight = 48,
-		RowSpacing = 12,
-		EdgePadding = 20,
-		MaxWidth = 520,
-		MaxHeight = 360,
-	},
+	RowHeight = 48,
+	RowSpacing = 12,
+	EdgePadding = 20,
+	MaxWidth = 460,
+	MaxHeight = 370,
+},
+
 }
 
 local function Tween(object, properties, duration, style)
