@@ -1,113 +1,60 @@
 -- MinimalGUI Library for Roblox Executors
--- Enhanced design with professional styling and improved minimalism
+-- Simple, smooth, and well-designed GUI library
 
 local MinimalGUI = {}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- Enhanced Design Configuration
+-- Library Configuration
 local Config = {
     Colors = {
-        Background = Color3.fromRGB(16, 16, 20),        -- Deeper, more professional dark
-        Secondary = Color3.fromRGB(24, 24, 28),         -- Subtle contrast
-        Tertiary = Color3.fromRGB(32, 32, 38),          -- Card backgrounds
-        Accent = Color3.fromRGB(99, 102, 241),          -- More sophisticated purple-blue
-        AccentHover = Color3.fromRGB(129, 140, 248),    -- Lighter hover state
-        Text = Color3.fromRGB(248, 250, 252),           -- Softer white
-        TextSecondary = Color3.fromRGB(148, 163, 184),  -- Professional gray
-        TextMuted = Color3.fromRGB(100, 116, 139),      -- Subtle text
-        Success = Color3.fromRGB(34, 197, 94),          -- Modern green
-        Danger = Color3.fromRGB(239, 68, 68),           -- Modern red
-        Border = Color3.fromRGB(39, 39, 42),            -- Subtle borders
-        Shadow = Color3.fromRGB(0, 0, 0)                -- Pure black for shadows
+        Background = Color3.fromRGB(20, 20, 25),
+        Secondary = Color3.fromRGB(30, 30, 35),
+        Accent = Color3.fromRGB(64, 128, 255),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(180, 180, 180),
+        Success = Color3.fromRGB(46, 204, 113),
+        Danger = Color3.fromRGB(231, 76, 60),
+        Border = Color3.fromRGB(40, 40, 45)
     },
     Fonts = {
-        Regular = Enum.Font.Inter,
-        Medium = Enum.Font.InterMedium,
-        Bold = Enum.Font.InterBold
+        Regular = Enum.Font.Gotham,
+        Bold = Enum.Font.GothamBold
     },
     Animations = {
-        Speed = 0.25,
-        FastSpeed = 0.15,
-        SlowSpeed = 0.4,
-        Style = Enum.EasingStyle.Cubic,
+        Speed = 0.3,
+        Style = Enum.EasingStyle.Quad,
         Direction = Enum.EasingDirection.Out
-    },
-    Spacing = {
-        Small = 8,
-        Medium = 16,
-        Large = 24,
-        ExtraLarge = 32
-    },
-    Radius = {
-        Small = 6,
-        Medium = 10,
-        Large = 14,
-        ExtraLarge = 18
     }
 }
 
--- Enhanced Utility Functions
-local function CreateTween(object, properties, duration, style, direction)
+-- Utility Functions
+local function CreateTween(object, properties, duration)
     duration = duration or Config.Animations.Speed
-    style = style or Config.Animations.Style
-    direction = direction or Config.Animations.Direction
-    local tweenInfo = TweenInfo.new(duration, style, direction)
+    local tweenInfo = TweenInfo.new(duration, Config.Animations.Style, Config.Animations.Direction)
     return TweenService:Create(object, tweenInfo, properties)
 end
 
 local function CreateCorner(parent, radius)
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius or Config.Radius.Medium)
+    corner.CornerRadius = UDim.new(0, radius or 8)
     corner.Parent = parent
     return corner
 end
 
-local function CreateStroke(parent, color, thickness, transparency)
+local function CreateStroke(parent, color, thickness)
     local stroke = Instance.new("UIStroke")
     stroke.Color = color or Config.Colors.Border
     stroke.Thickness = thickness or 1
-    stroke.Transparency = transparency or 0
     stroke.Parent = parent
     return stroke
-end
-
-local function CreateShadow(parent, size, transparency)
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, size or 20, 1, size or 20)
-    shadow.Position = UDim2.new(0, -(size or 20)/2, 0, -(size or 20)/2)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-    shadow.ImageColor3 = Config.Colors.Shadow
-    shadow.ImageTransparency = transparency or 0.8
-    shadow.ZIndex = parent.ZIndex - 1
-    shadow.Parent = parent.Parent
-    return shadow
-end
-
-local function CreatePadding(parent, padding)
-    local uiPadding = Instance.new("UIPadding")
-    if type(padding) == "number" then
-        uiPadding.PaddingTop = UDim.new(0, padding)
-        uiPadding.PaddingBottom = UDim.new(0, padding)
-        uiPadding.PaddingLeft = UDim.new(0, padding)
-        uiPadding.PaddingRight = UDim.new(0, padding)
-    elseif type(padding) == "table" then
-        uiPadding.PaddingTop = UDim.new(0, padding.Top or 0)
-        uiPadding.PaddingBottom = UDim.new(0, padding.Bottom or 0)
-        uiPadding.PaddingLeft = UDim.new(0, padding.Left or 0)
-        uiPadding.PaddingRight = UDim.new(0, padding.Right or 0)
-    end
-    uiPadding.Parent = parent
-    return uiPadding
 end
 
 -- Main GUI Class
 function MinimalGUI:CreateWindow(title, size)
     title = title or "MinimalGUI"
-    size = size or UDim2.new(0, 640, 0, 480)
+    size = size or UDim2.new(0, 500, 0, 400)
     
     local window = {}
     window.Pages = {}
@@ -118,9 +65,8 @@ function MinimalGUI:CreateWindow(title, size)
     screenGui.Name = "MinimalGUI"
     screenGui.Parent = CoreGui
     screenGui.ResetOnSpawn = false
-    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Main Frame with enhanced styling
+    -- Main Frame
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
     mainFrame.Size = size
@@ -128,133 +74,93 @@ function MinimalGUI:CreateWindow(title, size)
     mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     mainFrame.BackgroundColor3 = Config.Colors.Background
     mainFrame.BorderSizePixel = 0
-    mainFrame.ZIndex = 10
     mainFrame.Parent = screenGui
-    CreateCorner(mainFrame, Config.Radius.ExtraLarge)
-    CreateStroke(mainFrame, Config.Colors.Border, 1, 0.5)
+    CreateCorner(mainFrame, 12)
+    CreateStroke(mainFrame, Config.Colors.Border, 1)
     
-    -- Professional shadow effect
-    CreateShadow(mainFrame, 40, 0.3)
-    
-    -- Enhanced Title Bar
+    -- Title Bar
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 60)
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
     titleBar.Position = UDim2.new(0, 0, 0, 0)
     titleBar.BackgroundColor3 = Config.Colors.Secondary
     titleBar.BorderSizePixel = 0
-    titleBar.ZIndex = 15
     titleBar.Parent = mainFrame
-    CreateCorner(titleBar, Config.Radius.ExtraLarge)
-    CreateStroke(titleBar, Config.Colors.Border, 1, 0.3)
+    CreateCorner(titleBar, 12)
     
-    -- Title bar gradient overlay
-    local titleBarGradient = Instance.new("UIGradient")
-    titleBarGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
-    }
-    titleBarGradient.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.98),
-        NumberSequenceKeypoint.new(1, 0.95)
-    }
-    titleBarGradient.Rotation = 90
-    titleBarGradient.Parent = titleBar
-    
-    -- Enhanced Title Label
+    -- Title Label
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "TitleLabel"
-    titleLabel.Size = UDim2.new(1, -120, 1, 0)
-    titleLabel.Position = UDim2.new(0, Config.Spacing.Large, 0, 0)
+    titleLabel.Size = UDim2.new(1, -50, 1, 0)
+    titleLabel.Position = UDim2.new(0, 15, 0, 0)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title
     titleLabel.TextColor3 = Config.Colors.Text
-    titleLabel.TextSize = 18
+    titleLabel.TextScaled = true
     titleLabel.Font = Config.Fonts.Bold
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    titleLabel.TextYAlignment = Enum.TextYAlignment.Center
-    titleLabel.ZIndex = 20
     titleLabel.Parent = titleBar
     
-    -- Professional Close Button
+    -- Close Button
     local closeButton = Instance.new("TextButton")
     closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(0, 36, 0, 36)
-    closeButton.Position = UDim2.new(1, -48, 0.5, -18)
-    closeButton.BackgroundColor3 = Config.Colors.Tertiary
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -35, 0, 5)
+    closeButton.BackgroundColor3 = Config.Colors.Danger
+    closeButton.BackgroundTransparency = 0.3
     closeButton.BorderSizePixel = 0
-    closeButton.Text = "✕"
-    closeButton.TextColor3 = Config.Colors.TextSecondary
-    closeButton.TextSize = 16
-    closeButton.Font = Config.Fonts.Medium
-    closeButton.ZIndex = 20
+    closeButton.Text = "×"
+    closeButton.TextColor3 = Config.Colors.Text
+    closeButton.TextScaled = true
+    closeButton.Font = Config.Fonts.Bold
     closeButton.Parent = titleBar
-    CreateCorner(closeButton, Config.Radius.Medium)
-    CreateStroke(closeButton, Config.Colors.Border, 1, 0.5)
+    CreateCorner(closeButton, 6)
     
-    -- Enhanced Close Button Animations
+    -- Close Button Animations
     closeButton.MouseEnter:Connect(function()
-        CreateTween(closeButton, {
-            BackgroundColor3 = Config.Colors.Danger,
-            TextColor3 = Config.Colors.Text
-        }, Config.Animations.FastSpeed):Play()
+        CreateTween(closeButton, {BackgroundTransparency = 0}):Play()
     end)
     
     closeButton.MouseLeave:Connect(function()
-        CreateTween(closeButton, {
-            BackgroundColor3 = Config.Colors.Tertiary,
-            TextColor3 = Config.Colors.TextSecondary
-        }, Config.Animations.FastSpeed):Play()
+        CreateTween(closeButton, {BackgroundTransparency = 0.3}):Play()
     end)
     
     closeButton.MouseButton1Click:Connect(function()
-        CreateTween(closeButton, {Size = UDim2.new(0, 32, 0, 32)}, 0.1):Play()
-        CreateTween(mainFrame, {
-            Size = UDim2.new(0, 0, 0, 0),
-            BackgroundTransparency = 1
-        }, Config.Animations.Speed):Play()
-        wait(Config.Animations.Speed)
+        CreateTween(mainFrame, {Size = UDim2.new(0, 0, 0, 0)}, 0.2):Play()
+        wait(0.2)
         screenGui:Destroy()
     end)
     
-    -- Enhanced Content Frame
+    -- Content Frame
     local contentFrame = Instance.new("Frame")
     contentFrame.Name = "ContentFrame"
-    contentFrame.Size = UDim2.new(1, -Config.Spacing.ExtraLarge, 1, -84)
-    contentFrame.Position = UDim2.new(0, Config.Spacing.Medium, 0, 76)
+    contentFrame.Size = UDim2.new(1, -20, 1, -60)
+    contentFrame.Position = UDim2.new(0, 10, 0, 50)
     contentFrame.BackgroundTransparency = 1
-    contentFrame.ZIndex = 15
     contentFrame.Parent = mainFrame
     
-    -- Enhanced Page Navigation
+    -- Page Navigation
     local pageList = Instance.new("Frame")
     pageList.Name = "PageList"
-    pageList.Size = UDim2.new(0, 160, 1, 0)
+    pageList.Size = UDim2.new(0, 120, 1, 0)
     pageList.Position = UDim2.new(0, 0, 0, 0)
     pageList.BackgroundTransparency = 1
-    pageList.ZIndex = 15
     pageList.Parent = contentFrame
     
     local pageListLayout = Instance.new("UIListLayout")
     pageListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    pageListLayout.Padding = UDim.new(0, Config.Spacing.Small)
+    pageListLayout.Padding = UDim.new(0, 5)
     pageListLayout.Parent = pageList
     
-    CreatePadding(pageList, {Top = Config.Spacing.Small})
-    
-    -- Enhanced Page Content
+    -- Page Content
     local pageContent = Instance.new("Frame")
     pageContent.Name = "PageContent"
-    pageContent.Size = UDim2.new(1, -180, 1, 0)
-    pageContent.Position = UDim2.new(0, 180, 0, 0)
-    pageContent.BackgroundColor3 = Config.Colors.Secondary
-    pageContent.BorderSizePixel = 0
-    pageContent.ZIndex = 15
+    pageContent.Size = UDim2.new(1, -130, 1, 0)
+    pageContent.Position = UDim2.new(0, 130, 0, 0)
+    pageContent.BackgroundTransparency = 1
     pageContent.Parent = contentFrame
-    CreateCorner(pageContent, Config.Radius.Large)
-    CreateStroke(pageContent, Config.Colors.Border, 1, 0.5)
     
-    -- Drag Functionality (Enhanced)
+    -- Drag Functionality
     local dragging = false
     local dragStart = nil
     local startPos = nil
@@ -264,7 +170,6 @@ function MinimalGUI:CreateWindow(title, size)
             dragging = true
             dragStart = input.Position
             startPos = mainFrame.Position
-            CreateTween(mainFrame, {BackgroundColor3 = Config.Colors.Tertiary}, Config.Animations.FastSpeed):Play()
         end
     end)
     
@@ -278,7 +183,6 @@ function MinimalGUI:CreateWindow(title, size)
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
-            CreateTween(mainFrame, {BackgroundColor3 = Config.Colors.Background}, Config.Animations.FastSpeed):Play()
         end
     end)
     
@@ -288,119 +192,96 @@ function MinimalGUI:CreateWindow(title, size)
         page.Name = name
         page.Elements = {}
         
-        -- Enhanced Page Button
+        -- Page Button
         local pageButton = Instance.new("TextButton")
         pageButton.Name = name .. "Button"
-        pageButton.Size = UDim2.new(1, 0, 0, 44)
-        pageButton.BackgroundColor3 = Config.Colors.Tertiary
-        pageButton.BackgroundTransparency = 0.8
+        pageButton.Size = UDim2.new(1, 0, 0, 35)
+        pageButton.BackgroundColor3 = Config.Colors.Secondary
+        pageButton.BackgroundTransparency = 0.5
         pageButton.BorderSizePixel = 0
         pageButton.Text = name
         pageButton.TextColor3 = Config.Colors.TextSecondary
-        pageButton.TextSize = 14
-        pageButton.Font = Config.Fonts.Medium
-        pageButton.ZIndex = 20
+        pageButton.TextScaled = true
+        pageButton.Font = Config.Fonts.Regular
         pageButton.Parent = pageList
-        CreateCorner(pageButton, Config.Radius.Medium)
-        CreateStroke(pageButton, Config.Colors.Border, 1, 0.7)
-        CreatePadding(pageButton, Config.Spacing.Medium)
+        CreateCorner(pageButton, 6)
         
-        -- Enhanced Page Frame
+        -- Page Frame
         local pageFrame = Instance.new("ScrollingFrame")
         pageFrame.Name = name .. "Frame"
         pageFrame.Size = UDim2.new(1, 0, 1, 0)
         pageFrame.Position = UDim2.new(0, 0, 0, 0)
         pageFrame.BackgroundTransparency = 1
         pageFrame.BorderSizePixel = 0
-        pageFrame.ScrollBarThickness = 6
+        pageFrame.ScrollBarThickness = 4
         pageFrame.ScrollBarImageColor3 = Config.Colors.Accent
-        pageFrame.ScrollBarImageTransparency = 0.3
         pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
         pageFrame.Visible = false
-        pageFrame.ZIndex = 20
         pageFrame.Parent = pageContent
         
         local pageLayout = Instance.new("UIListLayout")
         pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        pageLayout.Padding = UDim.new(0, Config.Spacing.Medium)
+        pageLayout.Padding = UDim.new(0, 10)
         pageLayout.Parent = pageFrame
-        
-        CreatePadding(pageFrame, Config.Spacing.Large)
         
         -- Auto-resize canvas
         pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            pageFrame.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + Config.Spacing.ExtraLarge * 2)
+            pageFrame.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 20)
         end)
         
-        -- Enhanced Page Button Click
+        -- Page Button Click
         pageButton.MouseButton1Click:Connect(function()
             for _, p in pairs(window.Pages) do
                 p.Frame.Visible = false
-                CreateTween(p.Button, {
-                    BackgroundTransparency = 0.8,
-                    TextColor3 = Config.Colors.TextSecondary
-                }, Config.Animations.FastSpeed):Play()
+                CreateTween(p.Button, {BackgroundTransparency = 0.5, TextColor3 = Config.Colors.TextSecondary}):Play()
             end
             pageFrame.Visible = true
-            CreateTween(pageButton, {
-                BackgroundTransparency = 0,
-                TextColor3 = Config.Colors.Text
-            }, Config.Animations.FastSpeed):Play()
+            CreateTween(pageButton, {BackgroundTransparency = 0, TextColor3 = Config.Colors.Text}):Play()
             window.CurrentPage = page
         end)
         
-        -- Enhanced Page Button Hover
+        -- Page Button Hover
         pageButton.MouseEnter:Connect(function()
             if window.CurrentPage ~= page then
-                CreateTween(pageButton, {BackgroundTransparency = 0.4}, Config.Animations.FastSpeed):Play()
+                CreateTween(pageButton, {BackgroundTransparency = 0.2}):Play()
             end
         end)
         
         pageButton.MouseLeave:Connect(function()
             if window.CurrentPage ~= page then
-                CreateTween(pageButton, {BackgroundTransparency = 0.8}, Config.Animations.FastSpeed):Play()
+                CreateTween(pageButton, {BackgroundTransparency = 0.5}):Play()
             end
         end)
         
         page.Button = pageButton
         page.Frame = pageFrame
         
-        -- Enhanced Page Methods
+        -- Page Methods
         function page:CreateButton(text, callback)
             local button = Instance.new("TextButton")
             button.Name = text .. "Button"
-            button.Size = UDim2.new(1, 0, 0, 48)
+            button.Size = UDim2.new(1, 0, 0, 40)
             button.BackgroundColor3 = Config.Colors.Accent
             button.BorderSizePixel = 0
             button.Text = text
             button.TextColor3 = Config.Colors.Text
-            button.TextSize = 14
-            button.Font = Config.Fonts.Medium
-            button.ZIndex = 25
+            button.TextScaled = true
+            button.Font = Config.Fonts.Regular
             button.Parent = pageFrame
-            CreateCorner(button, Config.Radius.Medium)
-            CreateStroke(button, Config.Colors.Accent, 1, 0.5)
-            CreatePadding(button, Config.Spacing.Medium)
+            CreateCorner(button, 8)
             
-            -- Enhanced button hover effects
             button.MouseEnter:Connect(function()
-                CreateTween(button, {
-                    BackgroundColor3 = Config.Colors.AccentHover,
-                    Size = UDim2.new(1, 0, 0, 50)
-                }, Config.Animations.FastSpeed):Play()
+                CreateTween(button, {BackgroundColor3 = Color3.fromRGB(84, 148, 255)}):Play()
             end)
             
             button.MouseLeave:Connect(function()
-                CreateTween(button, {
-                    BackgroundColor3 = Config.Colors.Accent,
-                    Size = UDim2.new(1, 0, 0, 48)
-                }, Config.Animations.FastSpeed):Play()
+                CreateTween(button, {BackgroundColor3 = Config.Colors.Accent}):Play()
             end)
             
             button.MouseButton1Click:Connect(function()
-                CreateTween(button, {BackgroundColor3 = Config.Colors.Tertiary}, 0.1):Play()
+                CreateTween(button, {Size = UDim2.new(1, -4, 0, 36)}, 0.1):Play()
                 wait(0.1)
-                CreateTween(button, {BackgroundColor3 = Config.Colors.Accent}, 0.1):Play()
+                CreateTween(button, {Size = UDim2.new(1, 0, 0, 40)}, 0.1):Play()
                 if callback then callback() end
             end)
             
@@ -414,76 +295,265 @@ function MinimalGUI:CreateWindow(title, size)
             
             local toggleFrame = Instance.new("Frame")
             toggleFrame.Name = text .. "Toggle"
-            toggleFrame.Size = UDim2.new(1, 0, 0, 52)
-            toggleFrame.BackgroundColor3 = Config.Colors.Tertiary
+            toggleFrame.Size = UDim2.new(1, 0, 0, 40)
+            toggleFrame.BackgroundColor3 = Config.Colors.Secondary
             toggleFrame.BorderSizePixel = 0
-            toggleFrame.ZIndex = 25
             toggleFrame.Parent = pageFrame
-            CreateCorner(toggleFrame, Config.Radius.Medium)
-            CreateStroke(toggleFrame, Config.Colors.Border, 1, 0.5)
-            CreatePadding(toggleFrame, Config.Spacing.Medium)
+            CreateCorner(toggleFrame, 8)
             
             local toggleLabel = Instance.new("TextLabel")
-            toggleLabel.Size = UDim2.new(1, -80, 1, 0)
-            toggleLabel.Position = UDim2.new(0, 0, 0, 0)
+            toggleLabel.Size = UDim2.new(1, -60, 1, 0)
+            toggleLabel.Position = UDim2.new(0, 15, 0, 0)
             toggleLabel.BackgroundTransparency = 1
             toggleLabel.Text = text
             toggleLabel.TextColor3 = Config.Colors.Text
-            toggleLabel.TextSize = 14
-            toggleLabel.Font = Config.Fonts.Medium
+            toggleLabel.TextScaled = true
+            toggleLabel.Font = Config.Fonts.Regular
             toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-            toggleLabel.TextYAlignment = Enum.TextYAlignment.Center
-            toggleLabel.ZIndex = 30
             toggleLabel.Parent = toggleFrame
             
             local toggleButton = Instance.new("TextButton")
-            toggleButton.Size = UDim2.new(0, 56, 0, 28)
-            toggleButton.Position = UDim2.new(1, -56, 0.5, -14)
+            toggleButton.Size = UDim2.new(0, 40, 0, 20)
+            toggleButton.Position = UDim2.new(1, -50, 0.5, -10)
             toggleButton.BackgroundColor3 = toggleValue and Config.Colors.Success or Config.Colors.Border
             toggleButton.BorderSizePixel = 0
             toggleButton.Text = ""
-            toggleButton.ZIndex = 30
             toggleButton.Parent = toggleFrame
-            CreateCorner(toggleButton, 14)
+            CreateCorner(toggleButton, 10)
             
             local toggleIndicator = Instance.new("Frame")
-            toggleIndicator.Size = UDim2.new(0, 22, 0, 22)
-            toggleIndicator.Position = toggleValue and UDim2.new(1, -25, 0.5, -11) or UDim2.new(0, 3, 0.5, -11)
+            toggleIndicator.Size = UDim2.new(0, 16, 0, 16)
+            toggleIndicator.Position = toggleValue and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
             toggleIndicator.BackgroundColor3 = Config.Colors.Text
             toggleIndicator.BorderSizePixel = 0
-            toggleIndicator.ZIndex = 35
             toggleIndicator.Parent = toggleButton
-            CreateCorner(toggleIndicator, 11)
+            CreateCorner(toggleIndicator, 8)
             
-            -- Enhanced toggle animation
             toggleButton.MouseButton1Click:Connect(function()
                 toggleValue = not toggleValue
-                CreateTween(toggleButton, {
-                    BackgroundColor3 = toggleValue and Config.Colors.Success or Config.Colors.Border
-                }, Config.Animations.FastSpeed):Play()
-                CreateTween(toggleIndicator, {
-                    Position = toggleValue and UDim2.new(1, -25, 0.5, -11) or UDim2.new(0, 3, 0.5, -11)
-                }, Config.Animations.Speed, Enum.EasingStyle.Back):Play()
+                CreateTween(toggleButton, {BackgroundColor3 = toggleValue and Config.Colors.Success or Config.Colors.Border}):Play()
+                CreateTween(toggleIndicator, {Position = toggleValue and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}):Play()
                 if callback then callback(toggleValue) end
-            end)
-            
-            -- Toggle hover effect
-            toggleButton.MouseEnter:Connect(function()
-                CreateTween(toggleButton, {Size = UDim2.new(0, 58, 0, 30)}, Config.Animations.FastSpeed):Play()
-            end)
-            
-            toggleButton.MouseLeave:Connect(function()
-                CreateTween(toggleButton, {Size = UDim2.new(0, 56, 0, 28)}, Config.Animations.FastSpeed):Play()
             end)
             
             table.insert(page.Elements, toggleFrame)
             return toggleFrame, function() return toggleValue end
         end
         
+        function page:CreateSlider(text, min, max, defaultValue, callback)
+            min = min or 0
+            max = max or 100
+            defaultValue = defaultValue or min
+            local sliderValue = defaultValue
+            
+            local sliderFrame = Instance.new("Frame")
+            sliderFrame.Name = text .. "Slider"
+            sliderFrame.Size = UDim2.new(1, 0, 0, 60)
+            sliderFrame.BackgroundColor3 = Config.Colors.Secondary
+            sliderFrame.BorderSizePixel = 0
+            sliderFrame.Parent = pageFrame
+            CreateCorner(sliderFrame, 8)
+            
+            local sliderLabel = Instance.new("TextLabel")
+            sliderLabel.Size = UDim2.new(1, -80, 0, 25)
+            sliderLabel.Position = UDim2.new(0, 15, 0, 5)
+            sliderLabel.BackgroundTransparency = 1
+            sliderLabel.Text = text
+            sliderLabel.TextColor3 = Config.Colors.Text
+            sliderLabel.TextScaled = true
+            sliderLabel.Font = Config.Fonts.Regular
+            sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+            sliderLabel.Parent = sliderFrame
+            
+            local sliderValueLabel = Instance.new("TextLabel")
+            sliderValueLabel.Size = UDim2.new(0, 60, 0, 25)
+            sliderValueLabel.Position = UDim2.new(1, -75, 0, 5)
+            sliderValueLabel.BackgroundTransparency = 1
+            sliderValueLabel.Text = tostring(sliderValue)
+            sliderValueLabel.TextColor3 = Config.Colors.Accent
+            sliderValueLabel.TextScaled = true
+            sliderValueLabel.Font = Config.Fonts.Bold
+            sliderValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+            sliderValueLabel.Parent = sliderFrame
+            
+            local sliderTrack = Instance.new("Frame")
+            sliderTrack.Size = UDim2.new(1, -30, 0, 4)
+            sliderTrack.Position = UDim2.new(0, 15, 1, -20)
+            sliderTrack.BackgroundColor3 = Config.Colors.Border
+            sliderTrack.BorderSizePixel = 0
+            sliderTrack.Parent = sliderFrame
+            CreateCorner(sliderTrack, 2)
+            
+            local sliderFill = Instance.new("Frame")
+            sliderFill.Size = UDim2.new((sliderValue - min) / (max - min), 0, 1, 0)
+            sliderFill.Position = UDim2.new(0, 0, 0, 0)
+            sliderFill.BackgroundColor3 = Config.Colors.Accent
+            sliderFill.BorderSizePixel = 0
+            sliderFill.Parent = sliderTrack
+            CreateCorner(sliderFill, 2)
+            
+            local sliderHandle = Instance.new("Frame")
+            sliderHandle.Size = UDim2.new(0, 16, 0, 16)
+            sliderHandle.Position = UDim2.new((sliderValue - min) / (max - min), -8, 0.5, -8)
+            sliderHandle.BackgroundColor3 = Config.Colors.Text
+            sliderHandle.BorderSizePixel = 0
+            sliderHandle.Parent = sliderTrack
+            CreateCorner(sliderHandle, 8)
+            
+            local dragging = false
+            
+            local function updateSlider(input)
+                local relativeX = math.clamp((input.Position.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
+                sliderValue = math.floor(min + (max - min) * relativeX)
+                sliderValueLabel.Text = tostring(sliderValue)
+                
+                CreateTween(sliderFill, {Size = UDim2.new(relativeX, 0, 1, 0)}, 0.1):Play()
+                CreateTween(sliderHandle, {Position = UDim2.new(relativeX, -8, 0.5, -8)}, 0.1):Play()
+                
+                if callback then callback(sliderValue) end
+            end
+            
+            sliderTrack.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = true
+                    updateSlider(input)
+                end
+            end)
+            
+            UserInputService.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+                    updateSlider(input)
+                end
+            end)
+            
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+            
+            table.insert(page.Elements, sliderFrame)
+            return sliderFrame, function() return sliderValue end
+        end
+        
+        function page:CreateDropdown(text, options, defaultValue, callback)
+            options = options or {}
+            defaultValue = defaultValue or (options[1] or "Select...")
+            local dropdownValue = defaultValue
+            local isOpen = false
+            
+            local dropdownFrame = Instance.new("Frame")
+            dropdownFrame.Name = text .. "Dropdown"
+            dropdownFrame.Size = UDim2.new(1, 0, 0, 40)
+            dropdownFrame.BackgroundColor3 = Config.Colors.Secondary
+            dropdownFrame.BorderSizePixel = 0
+            dropdownFrame.Parent = pageFrame
+            CreateCorner(dropdownFrame, 8)
+            
+            local dropdownLabel = Instance.new("TextLabel")
+            dropdownLabel.Size = UDim2.new(0.5, -10, 1, 0)
+            dropdownLabel.Position = UDim2.new(0, 15, 0, 0)
+            dropdownLabel.BackgroundTransparency = 1
+            dropdownLabel.Text = text
+            dropdownLabel.TextColor3 = Config.Colors.Text
+            dropdownLabel.TextScaled = true
+            dropdownLabel.Font = Config.Fonts.Regular
+            dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+            dropdownLabel.Parent = dropdownFrame
+            
+            local dropdownButton = Instance.new("TextButton")
+            dropdownButton.Size = UDim2.new(0.5, -15, 0, 30)
+            dropdownButton.Position = UDim2.new(0.5, 0, 0, 5)
+            dropdownButton.BackgroundColor3 = Config.Colors.Background
+            dropdownButton.BorderSizePixel = 0
+            dropdownButton.Text = dropdownValue
+            dropdownButton.TextColor3 = Config.Colors.Text
+            dropdownButton.TextScaled = true
+            dropdownButton.Font = Config.Fonts.Regular
+            dropdownButton.Parent = dropdownFrame
+            CreateCorner(dropdownButton, 6)
+            CreateStroke(dropdownButton, Config.Colors.Border, 1)
+            
+            local dropdownArrow = Instance.new("TextLabel")
+            dropdownArrow.Size = UDim2.new(0, 20, 1, 0)
+            dropdownArrow.Position = UDim2.new(1, -25, 0, 0)
+            dropdownArrow.BackgroundTransparency = 1
+            dropdownArrow.Text = "▼"
+            dropdownArrow.TextColor3 = Config.Colors.TextSecondary
+            dropdownArrow.TextScaled = true
+            dropdownArrow.Font = Config.Fonts.Regular
+            dropdownArrow.Parent = dropdownButton
+            
+            local dropdownList = Instance.new("Frame")
+            dropdownList.Name = "DropdownList"
+            dropdownList.Size = UDim2.new(0.5, -15, 0, 0)
+            dropdownList.Position = UDim2.new(0.5, 0, 1, 5)
+            dropdownList.BackgroundColor3 = Config.Colors.Background
+            dropdownList.BorderSizePixel = 0
+            dropdownList.Visible = false
+            dropdownList.ZIndex = 10
+            dropdownList.Parent = dropdownFrame
+            CreateCorner(dropdownList, 6)
+            CreateStroke(dropdownList, Config.Colors.Border, 1)
+            
+            local dropdownListLayout = Instance.new("UIListLayout")
+            dropdownListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            dropdownListLayout.Parent = dropdownList
+            
+            local function toggleDropdown()
+                isOpen = not isOpen
+                local targetSize = isOpen and UDim2.new(0.5, -15, 0, #options * 30) or UDim2.new(0.5, -15, 0, 0)
+                
+                dropdownList.Visible = true
+                CreateTween(dropdownList, {Size = targetSize}, 0.2):Play()
+                CreateTween(dropdownArrow, {Rotation = isOpen and 180 or 0}, 0.2):Play()
+                
+                if not isOpen then
+                    wait(0.2)
+                    dropdownList.Visible = false
+                end
+            end
+            
+            dropdownButton.MouseButton1Click:Connect(toggleDropdown)
+            
+            -- Create option buttons
+            for i, option in ipairs(options) do
+                local optionButton = Instance.new("TextButton")
+                optionButton.Size = UDim2.new(1, 0, 0, 30)
+                optionButton.BackgroundColor3 = Config.Colors.Background
+                optionButton.BackgroundTransparency = 1
+                optionButton.BorderSizePixel = 0
+                optionButton.Text = option
+                optionButton.TextColor3 = Config.Colors.Text
+                optionButton.TextScaled = true
+                optionButton.Font = Config.Fonts.Regular
+                optionButton.LayoutOrder = i
+                optionButton.Parent = dropdownList
+                
+                optionButton.MouseEnter:Connect(function()
+                    CreateTween(optionButton, {BackgroundTransparency = 0.5, BackgroundColor3 = Config.Colors.Accent}):Play()
+                end)
+                
+                optionButton.MouseLeave:Connect(function()
+                    CreateTween(optionButton, {BackgroundTransparency = 1}):Play()
+                end)
+                
+                optionButton.MouseButton1Click:Connect(function()
+                    dropdownValue = option
+                    dropdownButton.Text = option
+                    toggleDropdown()
+                    if callback then callback(option) end
+                end)
+            end
+            
+            table.insert(page.Elements, dropdownFrame)
+            return dropdownFrame, function() return dropdownValue end
+        end
+        
         window.Pages[name] = page
         
         -- Auto-select first page
-        if next(window.Pages) and not window.CurrentPage then
+        if #window.Pages == 1 then
             pageButton.MouseButton1Click:Connect(function() end)()
         end
         
@@ -491,21 +561,12 @@ function MinimalGUI:CreateWindow(title, size)
     end
     
     function window:Destroy()
-        CreateTween(mainFrame, {
-            Size = UDim2.new(0, 0, 0, 0),
-            BackgroundTransparency = 1
-        }, Config.Animations.Speed):Play()
-        wait(Config.Animations.Speed)
         screenGui:Destroy()
     end
     
-    -- Enhanced initial animations
+    -- Initial animations
     mainFrame.Size = UDim2.new(0, 0, 0, 0)
-    mainFrame.BackgroundTransparency = 1
-    CreateTween(mainFrame, {
-        Size = size,
-        BackgroundTransparency = 0
-    }, Config.Animations.SlowSpeed, Enum.EasingStyle.Back):Play()
+    CreateTween(mainFrame, {Size = size}, 0.4):Play()
     
     return window
 end
