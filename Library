@@ -22,11 +22,12 @@ local Config = {
         Border = Color3.fromRGB(38, 38, 42),
         Overlay = Color3.fromRGB(0, 0, 0)
     },
-Fonts = {
-    Regular = Enum.Font.Gotham,
-    Medium = Enum.Font.GothamMedium,
-    Bold = Enum.Font.GothamBlack, -- or GothamBold if Black is too heavy
-}
+	
+	Fonts = {
+		Regular = Enum.Font.Gotham,
+		Medium = Enum.Font.GothamMedium,
+		Bold = Enum.Font.GothamBlack, -- or GothamBold if Black is too heavy
+	},
 
 
     Spacing = {
