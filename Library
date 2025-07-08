@@ -80,7 +80,7 @@ end
 
 local function Stroke(parent, color, thickness)
 	local stroke = Instance.new('UIStroke')
-	stroke.Color = color or Config.Colors.Border
+	Stroke(container, getColors().Border)
 	stroke.Thickness = thickness or 1
 	stroke.Transparency = 0
 	stroke.Parent = parent
@@ -512,7 +512,7 @@ function MinimalGUI:CreateWindow(title, size)
 			container.BorderSizePixel = 0
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.md)
-			Stroke(container, Config.Colors.Border)
+			Stroke(container, getColors().Border)
 
 			local headerFrame = Instance.new('Frame')
 			headerFrame.Size = UDim2.new(1, 0, 0, 24)
@@ -624,7 +624,7 @@ function MinimalGUI:CreateWindow(title, size)
 			container.BorderSizePixel = 0
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.md)
-			Stroke(container, Config.Colors.Border)
+			Stroke(container, getColors().Border)
 
 			local label = Instance.new('TextLabel')
 			label.Size = UDim2.new(0.4, 0, 1, 0)
@@ -646,7 +646,7 @@ function MinimalGUI:CreateWindow(title, size)
 			dropdown.ClipsDescendants = true
 			dropdown.Parent = container
 			Corner(dropdown, Config.Radius.sm)
-			Stroke(dropdown, Config.Colors.BorderLight)
+			Stroke(container, Config.Colors.BorderLight)
 
 			local valueText = Instance.new('TextLabel')
 			valueText.Size = UDim2.new(1, -28, 1, 0)
@@ -678,7 +678,7 @@ function MinimalGUI:CreateWindow(title, size)
 			optionsList.ZIndex = 1000
 			optionsList.Parent = container
 			Corner(optionsList, Config.Radius.sm)
-			Stroke(optionsList, Config.Colors.BorderLight)
+			Stroke(container, Config.Colors.BorderLight)
 
 			local optionsLayout = Instance.new('UIListLayout')
 			optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
