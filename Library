@@ -1,144 +1,364 @@
-local Library = {}
-Library.__index = Library
+-- MinimalGUI Library for Roblox Executors
+-- Simple, smooth, and well-designed GUI library
 
-function Library:CreateWindow(titleText)
-	local self = setmetatable({}, Library)
+local MinimalGUI = {}
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
 
-	local gui = Instance.new("ScreenGui")
-	local main = Instance.new("Frame")
-	local title = Instance.new("TextLabel")
-	local close = Instance.new("TextButton")
-	local pages = Instance.new("Frame")
-	local uilist = Instance.new("UIListLayout")
+-- Library Configuration
+local Config = {
+    Colors = {
+        Background = Color3.fromRGB(20, 20, 25),
+        Secondary = Color3.fromRGB(30, 30, 35),
+        Accent = Color3.fromRGB(64, 128, 255),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(180, 180, 180),
+        Success = Color3.fromRGB(46, 204, 113),
+        Danger = Color3.fromRGB(231, 76, 60),
+        Border = Color3.fromRGB(40, 40, 45)
+    },
+    Fonts = {
+        Regular = Enum.Font.Gotham,
+        Bold = Enum.Font.GothamBold
+    },
+    Animations = {
+        Speed = 0.3,
+        Style = Enum.EasingStyle.Quad,
+        Direction = Enum.EasingDirection.Out
+    }
+}
 
-	gui.Name = "LibraryUI"
-	gui.Parent = game.CoreGui
-	gui.ResetOnSpawn = false
-
-	main.Name = "Main"
-	main.Parent = gui
-	main.Size = UDim2.new(0, 300, 0, 400)
-	main.Position = UDim2.new(0.5, -150, 0.5, -200)
-	main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-	main.BorderSizePixel = 0
-	main.Active = true
-	main.Draggable = true
-
-	title.Name = "Title"
-	title.Parent = main
-	title.Size = UDim2.new(1, -40, 0, 40)
-	title.Position = UDim2.new(0, 10, 0, 0)
-	title.BackgroundTransparency = 1
-	title.Text = titleText or "Library"
-	title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	title.Font = Enum.Font.GothamBold
-	title.TextSize = 20
-	title.TextXAlignment = Enum.TextXAlignment.Left
-
-	close.Name = "Close"
-	close.Parent = main
-	close.Size = UDim2.new(0, 30, 0, 30)
-	close.Position = UDim2.new(1, -35, 0, 5)
-	close.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	close.Text = "X"
-	close.TextColor3 = Color3.fromRGB(255, 255, 255)
-	close.Font = Enum.Font.Gotham
-	close.TextSize = 16
-	close.BorderSizePixel = 0
-
-	pages.Name = "Pages"
-	pages.Parent = main
-	pages.Size = UDim2.new(1, -20, 1, -60)
-	pages.Position = UDim2.new(0, 10, 0, 50)
-	pages.BackgroundTransparency = 1
-	pages.ClipsDescendants = true
-
-	uilist.Parent = pages
-	uilist.Padding = UDim.new(0, 5)
-	uilist.SortOrder = Enum.SortOrder.LayoutOrder
-
-	close.MouseButton1Click:Connect(function()
-		gui:Destroy()
-	end)
-
-	self.Gui = gui
-	self.Pages = pages
-	self.CurrentPage = nil
-	self.PagesList = {}
-
-	return self
+-- Utility Functions
+local function CreateTween(object, properties, duration)
+    duration = duration or Config.Animations.Speed
+    local tweenInfo = TweenInfo.new(duration, Config.Animations.Style, Config.Animations.Direction)
+    return TweenService:Create(object, tweenInfo, properties)
 end
 
-function Library:CreatePage(name)
-	local page = Instance.new("Frame")
-	page.Name = name
-	page.Size = UDim2.new(1, 0, 1, 0)
-	page.BackgroundTransparency = 1
-	page.Visible = false
-	page.Parent = self.Pages
-
-	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 5)
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Parent = page
-
-	self.PagesList[name] = page
-	if not self.CurrentPage then
-		page.Visible = true
-		self.CurrentPage = page
-	end
-
-	return page
+local function CreateCorner(parent, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 8)
+    corner.Parent = parent
+    return corner
 end
 
-function Library:SwitchPage(name)
-	for _, p in pairs(self.PagesList) do
-		p.Visible = false
-	end
-	if self.PagesList[name] then
-		self.PagesList[name].Visible = true
-		self.CurrentPage = self.PagesList[name]
-	end
+local function CreateStroke(parent, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or Config.Colors.Border
+    stroke.Thickness = thickness or 1
+    stroke.Parent = parent
+    return stroke
 end
 
-function Library:CreateButton(page, text, callback)
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1, 0, 0, 40)
-	button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	button.Text = text
-	button.TextColor3 = Color3.fromRGB(255, 255, 255)
-	button.Font = Enum.Font.Gotham
-	button.TextSize = 16
-	button.BorderSizePixel = 0
-	button.Parent = page
-
-	button.MouseButton1Click:Connect(function()
-		if callback then callback() end
-	end)
-
-	return button
+-- Main GUI Class
+function MinimalGUI:CreateWindow(title, size)
+    title = title or "MinimalGUI"
+    size = size or UDim2.new(0, 500, 0, 400)
+    
+    local window = {}
+    window.Pages = {}
+    window.CurrentPage = nil
+    
+    -- Create ScreenGui
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MinimalGUI"
+    screenGui.Parent = CoreGui
+    screenGui.ResetOnSpawn = false
+    
+    -- Main Frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = size
+    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.BackgroundColor3 = Config.Colors.Background
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    CreateCorner(mainFrame, 12)
+    CreateStroke(mainFrame, Config.Colors.Border, 1)
+    
+    -- Title Bar
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.Position = UDim2.new(0, 0, 0, 0)
+    titleBar.BackgroundColor3 = Config.Colors.Secondary
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = mainFrame
+    CreateCorner(titleBar, 12)
+    
+    -- Title Label
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "TitleLabel"
+    titleLabel.Size = UDim2.new(1, -50, 1, 0)
+    titleLabel.Position = UDim2.new(0, 15, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Config.Colors.Text
+    titleLabel.TextScaled = true
+    titleLabel.Font = Config.Fonts.Bold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleBar
+    
+    -- Close Button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -35, 0, 5)
+    closeButton.BackgroundColor3 = Config.Colors.Danger
+    closeButton.BackgroundTransparency = 0.3
+    closeButton.BorderSizePixel = 0
+    closeButton.Text = "×"
+    closeButton.TextColor3 = Config.Colors.Text
+    closeButton.TextScaled = true
+    closeButton.Font = Config.Fonts.Bold
+    closeButton.Parent = titleBar
+    CreateCorner(closeButton, 6)
+    
+    -- Close Button Animations
+    closeButton.MouseEnter:Connect(function()
+        CreateTween(closeButton, {BackgroundTransparency = 0}):Play()
+    end)
+    
+    closeButton.MouseLeave:Connect(function()
+        CreateTween(closeButton, {BackgroundTransparency = 0.3}):Play()
+    end)
+    
+    closeButton.MouseButton1Click:Connect(function()
+        CreateTween(mainFrame, {Size = UDim2.new(0, 0, 0, 0)}, 0.2):Play()
+        wait(0.2)
+        screenGui:Destroy()
+    end)
+    
+    -- Content Frame
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Name = "ContentFrame"
+    contentFrame.Size = UDim2.new(1, -20, 1, -60)
+    contentFrame.Position = UDim2.new(0, 10, 0, 50)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.Parent = mainFrame
+    
+    -- Page Navigation
+    local pageList = Instance.new("Frame")
+    pageList.Name = "PageList"
+    pageList.Size = UDim2.new(0, 120, 1, 0)
+    pageList.Position = UDim2.new(0, 0, 0, 0)
+    pageList.BackgroundTransparency = 1
+    pageList.Parent = contentFrame
+    
+    local pageListLayout = Instance.new("UIListLayout")
+    pageListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    pageListLayout.Padding = UDim.new(0, 5)
+    pageListLayout.Parent = pageList
+    
+    -- Page Content
+    local pageContent = Instance.new("Frame")
+    pageContent.Name = "PageContent"
+    pageContent.Size = UDim2.new(1, -130, 1, 0)
+    pageContent.Position = UDim2.new(0, 130, 0, 0)
+    pageContent.BackgroundTransparency = 1
+    pageContent.Parent = contentFrame
+    
+    -- Drag Functionality
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    -- Window Methods
+    function window:CreatePage(name)
+        local page = {}
+        page.Name = name
+        page.Elements = {}
+        
+        -- Page Button
+        local pageButton = Instance.new("TextButton")
+        pageButton.Name = name .. "Button"
+        pageButton.Size = UDim2.new(1, 0, 0, 35)
+        pageButton.BackgroundColor3 = Config.Colors.Secondary
+        pageButton.BackgroundTransparency = 0.5
+        pageButton.BorderSizePixel = 0
+        pageButton.Text = name
+        pageButton.TextColor3 = Config.Colors.TextSecondary
+        pageButton.TextScaled = true
+        pageButton.Font = Config.Fonts.Regular
+        pageButton.Parent = pageList
+        CreateCorner(pageButton, 6)
+        
+        -- Page Frame
+        local pageFrame = Instance.new("ScrollingFrame")
+        pageFrame.Name = name .. "Frame"
+        pageFrame.Size = UDim2.new(1, 0, 1, 0)
+        pageFrame.Position = UDim2.new(0, 0, 0, 0)
+        pageFrame.BackgroundTransparency = 1
+        pageFrame.BorderSizePixel = 0
+        pageFrame.ScrollBarThickness = 4
+        pageFrame.ScrollBarImageColor3 = Config.Colors.Accent
+        pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        pageFrame.Visible = false
+        pageFrame.Parent = pageContent
+        
+        local pageLayout = Instance.new("UIListLayout")
+        pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        pageLayout.Padding = UDim.new(0, 10)
+        pageLayout.Parent = pageFrame
+        
+        -- Auto-resize canvas
+        pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            pageFrame.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 20)
+        end)
+        
+        -- Page Button Click
+        pageButton.MouseButton1Click:Connect(function()
+            for _, p in pairs(window.Pages) do
+                p.Frame.Visible = false
+                CreateTween(p.Button, {BackgroundTransparency = 0.5, TextColor3 = Config.Colors.TextSecondary}):Play()
+            end
+            pageFrame.Visible = true
+            CreateTween(pageButton, {BackgroundTransparency = 0, TextColor3 = Config.Colors.Text}):Play()
+            window.CurrentPage = page
+        end)
+        
+        -- Page Button Hover
+        pageButton.MouseEnter:Connect(function()
+            if window.CurrentPage ~= page then
+                CreateTween(pageButton, {BackgroundTransparency = 0.2}):Play()
+            end
+        end)
+        
+        pageButton.MouseLeave:Connect(function()
+            if window.CurrentPage ~= page then
+                CreateTween(pageButton, {BackgroundTransparency = 0.5}):Play()
+            end
+        end)
+        
+        page.Button = pageButton
+        page.Frame = pageFrame
+        
+        -- Page Methods
+        function page:CreateButton(text, callback)
+            local button = Instance.new("TextButton")
+            button.Name = text .. "Button"
+            button.Size = UDim2.new(1, 0, 0, 40)
+            button.BackgroundColor3 = Config.Colors.Accent
+            button.BorderSizePixel = 0
+            button.Text = text
+            button.TextColor3 = Config.Colors.Text
+            button.TextScaled = true
+            button.Font = Config.Fonts.Regular
+            button.Parent = pageFrame
+            CreateCorner(button, 8)
+            
+            button.MouseEnter:Connect(function()
+                CreateTween(button, {BackgroundColor3 = Color3.fromRGB(84, 148, 255)}):Play()
+            end)
+            
+            button.MouseLeave:Connect(function()
+                CreateTween(button, {BackgroundColor3 = Config.Colors.Accent}):Play()
+            end)
+            
+            button.MouseButton1Click:Connect(function()
+                CreateTween(button, {Size = UDim2.new(1, -4, 0, 36)}, 0.1):Play()
+                wait(0.1)
+                CreateTween(button, {Size = UDim2.new(1, 0, 0, 40)}, 0.1):Play()
+                if callback then callback() end
+            end)
+            
+            table.insert(page.Elements, button)
+            return button
+        end
+        
+        function page:CreateToggle(text, defaultValue, callback)
+            defaultValue = defaultValue or false
+            local toggleValue = defaultValue
+            
+            local toggleFrame = Instance.new("Frame")
+            toggleFrame.Name = text .. "Toggle"
+            toggleFrame.Size = UDim2.new(1, 0, 0, 40)
+            toggleFrame.BackgroundColor3 = Config.Colors.Secondary
+            toggleFrame.BorderSizePixel = 0
+            toggleFrame.Parent = pageFrame
+            CreateCorner(toggleFrame, 8)
+            
+            local toggleLabel = Instance.new("TextLabel")
+            toggleLabel.Size = UDim2.new(1, -60, 1, 0)
+            toggleLabel.Position = UDim2.new(0, 15, 0, 0)
+            toggleLabel.BackgroundTransparency = 1
+            toggleLabel.Text = text
+            toggleLabel.TextColor3 = Config.Colors.Text
+            toggleLabel.TextScaled = true
+            toggleLabel.Font = Config.Fonts.Regular
+            toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            toggleLabel.Parent = toggleFrame
+            
+            local toggleButton = Instance.new("TextButton")
+            toggleButton.Size = UDim2.new(0, 40, 0, 20)
+            toggleButton.Position = UDim2.new(1, -50, 0.5, -10)
+            toggleButton.BackgroundColor3 = toggleValue and Config.Colors.Success or Config.Colors.Border
+            toggleButton.BorderSizePixel = 0
+            toggleButton.Text = ""
+            toggleButton.Parent = toggleFrame
+            CreateCorner(toggleButton, 10)
+            
+            local toggleIndicator = Instance.new("Frame")
+            toggleIndicator.Size = UDim2.new(0, 16, 0, 16)
+            toggleIndicator.Position = toggleValue and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            toggleIndicator.BackgroundColor3 = Config.Colors.Text
+            toggleIndicator.BorderSizePixel = 0
+            toggleIndicator.Parent = toggleButton
+            CreateCorner(toggleIndicator, 8)
+            
+            toggleButton.MouseButton1Click:Connect(function()
+                toggleValue = not toggleValue
+                CreateTween(toggleButton, {BackgroundColor3 = toggleValue and Config.Colors.Success or Config.Colors.Border}):Play()
+                CreateTween(toggleIndicator, {Position = toggleValue and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}):Play()
+                if callback then callback(toggleValue) end
+            end)
+            
+            table.insert(page.Elements, toggleFrame)
+            return toggleFrame, function() return toggleValue end
+        end
+        
+        window.Pages[name] = page
+        
+        -- Auto-select first page
+        if #window.Pages == 1 then
+            pageButton.MouseButton1Click:Connect(function() end)()
+        end
+        
+        return page
+    end
+    
+    function window:Destroy()
+        screenGui:Destroy()
+    end
+    
+    -- Initial animations
+    mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    CreateTween(mainFrame, {Size = size}, 0.4):Play()
+    
+    return window
 end
 
-function Library:CreateToggle(page, text, callback)
-	local toggle = Instance.new("TextButton")
-	local state = false
-
-	toggle.Size = UDim2.new(1, 0, 0, 40)
-	toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	toggle.Text = "[ OFF ] " .. text
-	toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-	toggle.Font = Enum.Font.Gotham
-	toggle.TextSize = 16
-	toggle.BorderSizePixel = 0
-	toggle.Parent = page
-
-	toggle.MouseButton1Click:Connect(function()
-		state = not state
-		toggle.Text = (state and "[ ON ] " or "[ OFF ] ") .. text
-		if callback then callback(state) end
-	end)
-
-	return toggle
-end
-
-return Library
+return MinimalGUI
