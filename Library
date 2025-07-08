@@ -426,6 +426,7 @@ function MinimalGUI:CreateWindow(title, size)
 		tabBtnStroke.Thickness = 1
 		tabBtnStroke.Transparency = 1
 		tabBtnStroke.Color = window:getColors().PrimaryHover
+tabBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 		tabBtnStroke.Parent = tabBtn
 
 		local pageFrame = Instance.new('ScrollingFrame')
