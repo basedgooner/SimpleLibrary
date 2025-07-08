@@ -24,9 +24,9 @@ local Config = {
 		Glass = Color3.fromRGB(255, 255, 255)
 	},
 	Fonts = {
-		Regular = Enum.Font.Inter,
-		Medium = Enum.Font.InterMedium,
-		Bold = Enum.Font.InterBold,
+		Regular = Enum.Font.Gotham,
+		Medium = Enum.Font.GothamMedium,
+		Bold = Enum.Font.GothamBlack,
 	},
 	Spacing = { xs = 4, sm = 8, md = 12, lg = 16, xl = 24 },
 	Radius = { sm = 6, md = 8, lg = 12, xl = 16 },
