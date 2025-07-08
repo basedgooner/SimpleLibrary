@@ -233,15 +233,25 @@ function MinimalGUI:CreateWindow(title, size)
 		}, Config.Animation.Fast):Play()
 	end)
 	closeBtn.MouseButton1Click:Connect(function()
-		Tween(
-			main,
-			{ Size = UDim2.new(0, 0, 0, 0) },
-			Config.Animation.Medium,
-			Enum.EasingStyle.Quint
-		):Play()
-		task.wait(Config.Animation.Medium)
-		gui:Destroy()
-	end)
+	local shrinkTween = Tween(main, {
+		Size = UDim2.new(0, 0, 0, 0),
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+	}, Config.Animation.Slow, Enum.EasingStyle.Quint)
+	
+	-- Shrink all children (optional but adds polish)
+	for _, desc in ipairs(main:GetDescendants()) do
+		if desc:IsA("GuiObject") then
+			pcall(function()
+				Tween(desc, { Size = desc.Size * 0.5 }, Config.Animation.Slow):Play()
+			end)
+		end
+	end
+
+	shrinkTween:Play()
+	task.wait(Config.Animation.Slow)
+	gui:Destroy()
+end)
+
 
 	local tabContainer = Instance.new('Frame')
 	tabContainer.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 0, 32)
