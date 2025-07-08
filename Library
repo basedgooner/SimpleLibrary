@@ -80,7 +80,7 @@ end
 
 local function Stroke(parent, color, thickness)
 	local stroke = Instance.new('UIStroke')
-	Stroke(container, getColors().Border)
+	Stroke(container, Config.Colors.Border)
 	stroke.Thickness = thickness or 1
 	stroke.Transparency = 0
 	stroke.Parent = parent
