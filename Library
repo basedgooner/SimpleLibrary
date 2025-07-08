@@ -3,6 +3,13 @@ local TweenService = game:GetService('TweenService')
 local UserInputService = game:GetService('UserInputService')
 local CoreGui = game:GetService('CoreGui')
 
+if getgenv then
+	local existingGUI = getgenv().MinimalGUI_Instance
+	if existingGUI and typeof(existingGUI.DestroyAll) == "function" then
+		pcall(function() existingGUI:DestroyAll() end)
+	end
+end
+
 local Config = {
 	Colors = {
 		Light = {
@@ -172,6 +179,8 @@ function MinimalGUI:CreateWindow(title, size)
 		_connections = {},
 		_isDarkTheme = false,
 	}
+
+	self.CurrentWindow = window
 
 	function window:getColors()
 		return self._isDarkTheme and Config.Colors.Dark or Config.Colors.Light
@@ -523,7 +532,7 @@ function MinimalGUI:CreateWindow(title, size)
 			btnStroke.Thickness = 1
 			btnStroke.Transparency = 1
 			btnStroke.Color = window:getColors().PrimaryHover
-			toggleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			btnStroke.Parent = btn
 
 			btn.MouseEnter:Connect(function()
@@ -918,6 +927,25 @@ function MinimalGUI:CreateWindow(title, size)
 	Tween(main, { Size = size }, Config.Animation.Slow, Enum.EasingStyle.Quint):Play()
 
 	return window
+end
+
+if getgenv then
+	getgenv().MinimalGUI_Instance = MinimalGUI
+end
+
+function MinimalGUI:DestroyAll()
+	if typeof(self.CurrentWindow) == "table" and self.CurrentWindow.Destroy then
+		pcall(function() self.CurrentWindow:Destroy() end)
+	end
+
+	notificationQueue = {}
+	notificationContainer = nil
+	self.CurrentWindow = nil
+
+	setmetatable(self, nil)
+	for k in pairs(self) do
+		self[k] = nil
+	end
 end
 
 return MinimalGUI
