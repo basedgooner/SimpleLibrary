@@ -1,75 +1,34 @@
-function page:CreateSlider(text, min, max, defaultValue, callback)
-			min, max = min or 0, max or 100
-			local value = defaultValue or min
-
-			local container = Instance.new('Frame')
-			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight + 20)
-			container.BackgroundColor3 = getColors().Surface
-			container.BorderSizePixel = 0
-			container.Parent = pageFrame
-			Corner(container, Config.Radius.lg)
-			Stroke(container, getColors().Border)
-
-			local headerFrame = Instance.new('Frame')
-			headerFrame.Size = UDim2.new(1, 0, 0, 24)
-			headerFrame.Position = UDim2.new(0, 0, 0, Config.Spacing.md)
-			headerFrame.BackgroundTransparency = 1
-			headerFrame.Parent = container
-
-			local label = Instance.new('TextLabel')
-			label.Size = UDim2.new(1, -60, 1, 0)
-			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
-			label.BackgroundTransparency = 1
-			label.Text = text
-			label.TextColor3 = getColors().Text
-			label.TextSize = 14
-			label.Font = Config.Fonts.Regular
-
 local function updateTheme()
-		local colors = getColors()
-		main.BackgroundColor3 = colors.Background
-		header.BackgroundColor3 = colors.Surface
-		headerSeparator.BackgroundColor3 = colors.Border
-		titleText.TextColor3 = colors.Text
-		themeBtn.BackgroundColor3 = colors.Surface2
-		themeBtn.TextColor3 = colors.TextMuted
-		closeBtn.BackgroundColor3 = colors.Surface2
-		closeBtn.TextColor3 = colors.TextMuted
-		
-		for _, stroke in pairs({main:FindFirstChild('UIStroke')}) do
-			if stroke then stroke.Color = colors.Border end
-		end
-		
-		for _, page in pairs(window.Pages) do
-			if page._button then
-				if window.CurrentPage == page then
-					page._button.BackgroundColor3 = colors.Primary
-					page._button.TextColor3 = colors.Surface
-				else
-					page._button.BackgroundColor3 = colors.Surface2
-					page._button.TextColor3 = colors.TextSecondary
-				end
-			end
+	local colors = getColors()
+	main.BackgroundColor3 = colors.Background
+	header.BackgroundColor3 = colors.Surface
+	headerSeparator.BackgroundColor3 = colors.Border
+	titleText.TextColor3 = colors.Text
+	themeBtn.BackgroundColor3 = colors.Surface2
+	themeBtn.TextColor3 = colors.TextMuted
+	closeBtn.BackgroundColor3 = colors.Surface2
+	closeBtn.TextColor3 = colors.TextMuted
+
+	for _, stroke in pairs({ main:FindFirstChild('UIStroke') }) do
+		if stroke then
+			stroke.Color = colors.Border
 		end
 	end
 
-	themeBtn.MouseEnter:Connect(function()
-		Tween(themeBtn, { 
-			BackgroundColor3 = getColors().Surface3, 
-			TextColor3 = getColors().Text
-		}, Config.Animation.Fast):Play()
-	end)
-	themeBtn.MouseLeave:Connect(function()
-		Tween(themeBtn, { 
-			BackgroundColor3 = getColors().Surface2, 
-			TextColor3 = getColors().TextMuted
-		}, Config.Animation.Fast):Play()
-	end)
-	themeBtn.MouseButton1Click:Connect(function()
-		window._isDarkTheme = not window._isDarkTheme
-		themeBtn.Text = window._isDarkTheme and '🌙' or '☀'
-		updateTheme()
-	end)local MinimalGUI = {}
+	for _, page in pairs(window.Pages) do
+		if page._button then
+			if window.CurrentPage == page then
+				page._button.BackgroundColor3 = colors.Primary
+				page._button.TextColor3 = colors.Surface
+			else
+				page._button.BackgroundColor3 = colors.Surface2
+				page._button.TextColor3 = colors.TextSecondary
+			end
+		end
+	end
+end
+
+local MinimalGUI = {}
 local TweenService = game:GetService('TweenService')
 local UserInputService = game:GetService('UserInputService')
 local CoreGui = game:GetService('CoreGui')
@@ -92,7 +51,7 @@ local Config = {
 			Warning = Color3.fromRGB(251, 146, 60),
 			Border = Color3.fromRGB(226, 232, 240),
 			BorderLight = Color3.fromRGB(203, 213, 225),
-			Accent = Color3.fromRGB(147, 51, 234)
+			Accent = Color3.fromRGB(147, 51, 234),
 		},
 		Dark = {
 			Background = Color3.fromRGB(15, 15, 20),
@@ -110,8 +69,8 @@ local Config = {
 			Warning = Color3.fromRGB(251, 146, 60),
 			Border = Color3.fromRGB(55, 55, 70),
 			BorderLight = Color3.fromRGB(65, 65, 80),
-			Accent = Color3.fromRGB(147, 51, 234)
-		}
+			Accent = Color3.fromRGB(147, 51, 234),
+		},
 	},
 	Fonts = {
 		Regular = Enum.Font.Gotham,
@@ -126,14 +85,20 @@ local Config = {
 		RowSpacing = 12,
 		EdgePadding = 20,
 		MaxWidth = 720,
-		MaxHeight = 480
-	}
+		MaxHeight = 480,
+	},
 }
 
 local function Tween(object, properties, duration, style)
-	return TweenService:Create(object, 
-		TweenInfo.new(duration or Config.Animation.Medium, style or Enum.EasingStyle.Quint, Enum.EasingDirection.Out), 
-		properties)
+	return TweenService:Create(
+		object,
+		TweenInfo.new(
+			duration or Config.Animation.Medium,
+			style or Enum.EasingStyle.Quint,
+			Enum.EasingDirection.Out
+		),
+		properties
+	)
 end
 
 local function Corner(parent, radius)
@@ -154,10 +119,16 @@ end
 
 function MinimalGUI:CreateWindow(title, size)
 	title = title or 'MinimalGUI'
-	size = size or UDim2.new(0, Config.Layout.MaxWidth, 0, Config.Layout.MaxHeight)
+	size = size
+		or UDim2.new(0, Config.Layout.MaxWidth, 0, Config.Layout.MaxHeight)
 
-	local window = { Pages = {}, CurrentPage = nil, _connections = {}, _isDarkTheme = false }
-	
+	local window = {
+		Pages = {},
+		CurrentPage = nil,
+		_connections = {},
+		_isDarkTheme = false,
+	}
+
 	local function getColors()
 		return window._isDarkTheme and Config.Colors.Dark or Config.Colors.Light
 	end
@@ -215,6 +186,24 @@ function MinimalGUI:CreateWindow(title, size)
 	themeBtn.Parent = header
 	Corner(themeBtn, 14)
 
+	themeBtn.MouseEnter:Connect(function()
+		Tween(themeBtn, {
+			BackgroundColor3 = getColors().Surface3,
+			TextColor3 = getColors().Text,
+		}, Config.Animation.Fast):Play()
+	end)
+	themeBtn.MouseLeave:Connect(function()
+		Tween(themeBtn, {
+			BackgroundColor3 = getColors().Surface2,
+			TextColor3 = getColors().TextMuted,
+		}, Config.Animation.Fast):Play()
+	end)
+	themeBtn.MouseButton1Click:Connect(function()
+		window._isDarkTheme = not window._isDarkTheme
+		themeBtn.Text = window._isDarkTheme and '🌙' or '☀'
+		updateTheme()
+	end)
+	
 	local closeBtn = Instance.new('TextButton')
 	closeBtn.Size = UDim2.new(0, 28, 0, 28)
 	closeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 28, 0, 14)
@@ -228,19 +217,24 @@ function MinimalGUI:CreateWindow(title, size)
 	Corner(closeBtn, 14)
 
 	closeBtn.MouseEnter:Connect(function()
-		Tween(closeBtn, { 
-			BackgroundColor3 = getColors().Danger, 
-			TextColor3 = getColors().Surface
+		Tween(closeBtn, {
+			BackgroundColor3 = getColors().Danger,
+			TextColor3 = getColors().Surface,
 		}, Config.Animation.Fast):Play()
 	end)
 	closeBtn.MouseLeave:Connect(function()
-		Tween(closeBtn, { 
-			BackgroundColor3 = getColors().Surface2, 
-			TextColor3 = getColors().TextMuted
+		Tween(closeBtn, {
+			BackgroundColor3 = getColors().Surface2,
+			TextColor3 = getColors().TextMuted,
 		}, Config.Animation.Fast):Play()
 	end)
 	closeBtn.MouseButton1Click:Connect(function()
-		Tween(main, { Size = UDim2.new(0, 0, 0, 0) }, Config.Animation.Medium, Enum.EasingStyle.Quint):Play()
+		Tween(
+			main,
+			{ Size = UDim2.new(0, 0, 0, 0) },
+			Config.Animation.Medium,
+			Enum.EasingStyle.Quint
+		):Play()
 		task.wait(Config.Animation.Medium)
 		gui:Destroy()
 	end)
@@ -276,21 +270,32 @@ function MinimalGUI:CreateWindow(title, size)
 		end
 	end)
 
-	table.insert(window._connections, UserInputService.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement and dragData.dragging then
-			local delta = input.Position - dragData.startPos
-			main.Position = UDim2.new(
-				dragData.frameStart.X.Scale, dragData.frameStart.X.Offset + delta.X,
-				dragData.frameStart.Y.Scale, dragData.frameStart.Y.Offset + delta.Y
-			)
-		end
-	end))
+	table.insert(
+		window._connections,
+		UserInputService.InputChanged:Connect(function(input)
+			if
+				input.UserInputType == Enum.UserInputType.MouseMovement
+				and dragData.dragging
+			then
+				local delta = input.Position - dragData.startPos
+				main.Position = UDim2.new(
+					dragData.frameStart.X.Scale,
+					dragData.frameStart.X.Offset + delta.X,
+					dragData.frameStart.Y.Scale,
+					dragData.frameStart.Y.Offset + delta.Y
+				)
+			end
+		end)
+	)
 
-	table.insert(window._connections, UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragData.dragging = false
-		end
-	end))
+	table.insert(
+		window._connections,
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				dragData.dragging = false
+			end
+		end)
+	)
 
 	function window:CreatePage(name)
 		local page = { Name = name, Elements = {}, _frame = nil, _button = nil }
@@ -334,34 +339,49 @@ function MinimalGUI:CreateWindow(title, size)
 		pagePadding.PaddingBottom = UDim.new(0, Config.Spacing.xl)
 		pagePadding.Parent = pageFrame
 
-		pageLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
-			pageFrame.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + Config.Spacing.xl * 2)
-		end)
+		pageLayout
+			:GetPropertyChangedSignal('AbsoluteContentSize')
+			:Connect(function()
+				pageFrame.CanvasSize = UDim2.new(
+					0,
+					0,
+					0,
+					pageLayout.AbsoluteContentSize.Y + Config.Spacing.xl * 2
+				)
+			end)
 
 		tabBtn.MouseButton1Click:Connect(function()
 			for _, p in pairs(window.Pages) do
 				p._frame.Visible = false
-				Tween(p._button, { 
-					BackgroundColor3 = getColors().Surface2, 
-					TextColor3 = getColors().TextSecondary
+				Tween(p._button, {
+					BackgroundColor3 = getColors().Surface2,
+					TextColor3 = getColors().TextSecondary,
 				}, Config.Animation.Medium):Play()
 			end
 			pageFrame.Visible = true
-			Tween(tabBtn, { 
-				BackgroundColor3 = getColors().Primary, 
-				TextColor3 = getColors().Surface
+			Tween(tabBtn, {
+				BackgroundColor3 = getColors().Primary,
+				TextColor3 = getColors().Surface,
 			}, Config.Animation.Medium):Play()
 			window.CurrentPage = page
 		end)
 
 		tabBtn.MouseEnter:Connect(function()
 			if window.CurrentPage ~= page then
-				Tween(tabBtn, { BackgroundColor3 = getColors().Surface3 }, Config.Animation.Fast):Play()
+				Tween(
+					tabBtn,
+					{ BackgroundColor3 = getColors().Surface3 },
+					Config.Animation.Fast
+				):Play()
 			end
 		end)
 		tabBtn.MouseLeave:Connect(function()
 			if window.CurrentPage ~= page then
-				Tween(tabBtn, { BackgroundColor3 = getColors().Surface2 }, Config.Animation.Fast):Play()
+				Tween(
+					tabBtn,
+					{ BackgroundColor3 = getColors().Surface2 },
+					Config.Animation.Fast
+				):Play()
 			end
 		end)
 
@@ -386,16 +406,34 @@ function MinimalGUI:CreateWindow(title, size)
 			Corner(btn, Config.Radius.lg)
 
 			btn.MouseEnter:Connect(function()
-				Tween(btn, { BackgroundColor3 = getColors().PrimaryHover }, Config.Animation.Fast):Play()
+				Tween(
+					btn,
+					{ BackgroundColor3 = getColors().PrimaryHover },
+					Config.Animation.Fast
+				):Play()
 			end)
 			btn.MouseLeave:Connect(function()
-				Tween(btn, { BackgroundColor3 = getColors().Primary }, Config.Animation.Fast):Play()
+				Tween(
+					btn,
+					{ BackgroundColor3 = getColors().Primary },
+					Config.Animation.Fast
+				):Play()
 			end)
 			btn.MouseButton1Click:Connect(function()
-				Tween(btn, { BackgroundColor3 = getColors().PrimaryDim }, Config.Animation.Fast):Play()
+				Tween(
+					btn,
+					{ BackgroundColor3 = getColors().PrimaryDim },
+					Config.Animation.Fast
+				):Play()
 				task.wait(0.06)
-				Tween(btn, { BackgroundColor3 = getColors().Primary }, Config.Animation.Fast):Play()
-				if callback then callback() end
+				Tween(
+					btn,
+					{ BackgroundColor3 = getColors().Primary },
+					Config.Animation.Fast
+				):Play()
+				if callback then
+					callback()
+				end
 			end)
 
 			table.insert(page.Elements, container)
@@ -427,7 +465,8 @@ function MinimalGUI:CreateWindow(title, size)
 			local toggle = Instance.new('TextButton')
 			toggle.Size = UDim2.new(0, 44, 0, 22)
 			toggle.Position = UDim2.new(1, -Config.Spacing.lg - 44, 0.5, -11)
-			toggle.BackgroundColor3 = value and getColors().Primary or getColors().Surface3
+			toggle.BackgroundColor3 = value and getColors().Primary
+				or getColors().Surface3
 			toggle.BorderSizePixel = 0
 			toggle.Text = ''
 			toggle.Parent = container
@@ -435,7 +474,8 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local thumb = Instance.new('Frame')
 			thumb.Size = UDim2.new(0, 18, 0, 18)
-			thumb.Position = value and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+			thumb.Position = value and UDim2.new(1, -20, 0.5, -9)
+				or UDim2.new(0, 2, 0.5, -9)
 			thumb.BackgroundColor3 = getColors().Surface
 			thumb.BorderSizePixel = 0
 			thumb.Parent = toggle
@@ -443,17 +483,23 @@ function MinimalGUI:CreateWindow(title, size)
 
 			toggle.MouseButton1Click:Connect(function()
 				value = not value
-				Tween(toggle, { 
-					BackgroundColor3 = value and getColors().Primary or getColors().Surface3 
+				Tween(toggle, {
+					BackgroundColor3 = value and getColors().Primary
+						or getColors().Surface3,
 				}, Config.Animation.Medium):Play()
-				Tween(thumb, { 
-					Position = value and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9) 
+				Tween(thumb, {
+					Position = value and UDim2.new(1, -20, 0.5, -9)
+						or UDim2.new(0, 2, 0.5, -9),
 				}, Config.Animation.Medium):Play()
-				if callback then callback(value) end
+				if callback then
+					callback(value)
+				end
 			end)
 
 			table.insert(page.Elements, container)
-			return container, function() return value end
+			return container, function()
+				return value
+			end
 		end
 
 		function page:CreateSlider(text, min, max, defaultValue, callback)
@@ -498,7 +544,12 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local track = Instance.new('TextButton')
 			track.Size = UDim2.new(1, -Config.Spacing.lg * 2, 0, 8)
-			track.Position = UDim2.new(0, Config.Spacing.lg, 1, -Config.Spacing.lg - 4)
+			track.Position = UDim2.new(
+				0,
+				Config.Spacing.lg,
+				1,
+				-Config.Spacing.lg - 4
+			)
 			track.BackgroundColor3 = Config.Colors.Surface3
 			track.BorderSizePixel = 0
 			track.Text = ''
@@ -515,12 +566,23 @@ function MinimalGUI:CreateWindow(title, size)
 			local dragging = false
 
 			local function updateSlider(input)
-				local percent = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+				local percent = math.clamp(
+					(input.Position.X - track.AbsolutePosition.X)
+						/ track.AbsoluteSize.X,
+					0,
+					1
+				)
 				value = math.round(min + (max - min) * percent)
 				valueLabel.Text = tostring(value)
 
-				Tween(fill, { Size = UDim2.new(percent, 0, 1, 0) }, Config.Animation.Fast):Play()
-				if callback then callback(value) end
+				Tween(
+					fill,
+					{ Size = UDim2.new(percent, 0, 1, 0) },
+					Config.Animation.Fast
+				):Play()
+				if callback then
+					callback(value)
+				end
 			end
 
 			track.InputBegan:Connect(function(input)
@@ -531,7 +593,10 @@ function MinimalGUI:CreateWindow(title, size)
 			end)
 
 			UserInputService.InputChanged:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+				if
+					input.UserInputType == Enum.UserInputType.MouseMovement
+					and dragging
+				then
 					updateSlider(input)
 				end
 			end)
@@ -543,7 +608,9 @@ function MinimalGUI:CreateWindow(title, size)
 			end)
 
 			table.insert(page.Elements, container)
-			return container, function() return value end
+			return container, function()
+				return value
+			end
 		end
 
 		function page:CreateDropdown(text, options, defaultValue, callback)
@@ -622,8 +689,23 @@ function MinimalGUI:CreateWindow(title, size)
 				local targetHeight = isOpen and (#options * 28) or 0
 
 				optionsList.Visible = true
-				Tween(optionsList, { Size = UDim2.new(0.6, -Config.Spacing.lg, 0, targetHeight) }, Config.Animation.Medium):Play()
-				Tween(arrow, { Rotation = isOpen and 180 or 0 }, Config.Animation.Medium):Play()
+				Tween(
+					optionsList,
+					{
+						Size = UDim2.new(
+							0.6,
+							-Config.Spacing.lg,
+							0,
+							targetHeight
+						),
+					},
+					Config.Animation.Medium
+				):Play()
+				Tween(
+					arrow,
+					{ Rotation = isOpen and 180 or 0 },
+					Config.Animation.Medium
+				):Play()
 
 				if not isOpen then
 					task.wait(Config.Animation.Medium)
@@ -655,30 +737,45 @@ function MinimalGUI:CreateWindow(title, size)
 				optionText.Parent = optionBtn
 
 				optionBtn.MouseEnter:Connect(function()
-					Tween(optionBtn, { BackgroundTransparency = 0, BackgroundColor3 = Config.Colors.Surface2 }, Config.Animation.Fast):Play()
+					Tween(
+						optionBtn,
+						{
+							BackgroundTransparency = 0,
+							BackgroundColor3 = Config.Colors.Surface2,
+						},
+						Config.Animation.Fast
+					):Play()
 				end)
 				optionBtn.MouseLeave:Connect(function()
-					Tween(optionBtn, { BackgroundTransparency = 1 }, Config.Animation.Fast):Play()
+					Tween(
+						optionBtn,
+						{ BackgroundTransparency = 1 },
+						Config.Animation.Fast
+					):Play()
 				end)
 				optionBtn.MouseButton1Click:Connect(function()
 					value = option
 					valueText.Text = option
 					toggleDropdown()
-					if callback then callback(option) end
+					if callback then
+						callback(option)
+					end
 				end)
 			end
 
 			table.insert(page.Elements, container)
-			return container, function() return value end
+			return container, function()
+				return value
+			end
 		end
 
 		window.Pages[name] = page
 
 		if not window.CurrentPage then
 			pageFrame.Visible = true
-			Tween(tabBtn, { 
-				BackgroundColor3 = Config.Colors.Primary, 
-				TextColor3 = Config.Colors.Surface
+			Tween(tabBtn, {
+				BackgroundColor3 = Config.Colors.Primary,
+				TextColor3 = Config.Colors.Surface,
 			}, Config.Animation.Fast):Play()
 			window.CurrentPage = page
 		end
