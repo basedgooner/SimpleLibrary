@@ -99,7 +99,7 @@ function MinimalGUI:CreateWindow(title, size)
 		_isDarkTheme = false,
 	}
 
-	function window:window:getColors()
+	function window:getColors()
 		return self._isDarkTheme and Config.Colors.Dark or Config.Colors.Light
 	end
 
