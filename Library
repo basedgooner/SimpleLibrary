@@ -430,7 +430,7 @@ function MinimalGUI:CreateWindow(title, size)
             
             table.insert(page.Elements, toggleFrame)
             return toggleFrame, function() return toggleValue end
-        end "Toggle"
+        end
             toggleFrame.Size = UDim2.new(1, 0, 0, 40)
             toggleFrame.BackgroundColor3 = Config.Colors.Secondary
             toggleFrame.BorderSizePixel = 0
