@@ -2,643 +2,769 @@
 -- Refined, minimal, and professional GUI library
 
 local MinimalGUI = {}
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService('TweenService')
+local UserInputService = game:GetService('UserInputService')
+local CoreGui = game:GetService('CoreGui')
 
 -- Design System Configuration
 local Config = {
-    Colors = {
-        Background = Color3.fromRGB(15, 15, 18),
-        Surface = Color3.fromRGB(22, 22, 26),
-        Surface2 = Color3.fromRGB(28, 28, 32),
-        Primary = Color3.fromRGB(64, 120, 255),
-        PrimaryHover = Color3.fromRGB(80, 140, 255),
-        Text = Color3.fromRGB(248, 248, 250),
-        TextSecondary = Color3.fromRGB(160, 160, 170),
-        TextMuted = Color3.fromRGB(120, 120, 130),
-        Success = Color3.fromRGB(34, 197, 94),
-        Danger = Color3.fromRGB(239, 68, 68),
-        Border = Color3.fromRGB(38, 38, 42),
-        Overlay = Color3.fromRGB(0, 0, 0)
-    },
-	
+	Colors = {
+		Background = Color3.fromRGB(15, 15, 18),
+		Surface = Color3.fromRGB(22, 22, 26),
+		Surface2 = Color3.fromRGB(28, 28, 32),
+		Primary = Color3.fromRGB(64, 120, 255),
+		PrimaryHover = Color3.fromRGB(80, 140, 255),
+		Text = Color3.fromRGB(248, 248, 250),
+		TextSecondary = Color3.fromRGB(160, 160, 170),
+		TextMuted = Color3.fromRGB(120, 120, 130),
+		Success = Color3.fromRGB(34, 197, 94),
+		Danger = Color3.fromRGB(239, 68, 68),
+		Border = Color3.fromRGB(38, 38, 42),
+		Overlay = Color3.fromRGB(0, 0, 0),
+	},
+
 	Fonts = {
 		Regular = Enum.Font.Gotham,
 		Medium = Enum.Font.GothamMedium,
 		Bold = Enum.Font.GothamBlack, -- or GothamBold if Black is too heavy
+	}, -- ← This comma needs to be here to properly close the table
+
+	Spacing = {
+		xs = 4,
+		sm = 8,
+		md = 12,
+		lg = 16,
+		xl = 20,
+		xxl = 24,
 	},
-
-
-    Spacing = {
-        xs = 4, sm = 8, md = 12, lg = 16, xl = 20, xxl = 24
-    },
-    Radius = {
-        sm = 6, md = 8, lg = 10, xl = 12
-    },
-    Animation = {
-        Fast = 0.15,
-        Medium = 0.25,
-        Slow = 0.35,
-        Bounce = Enum.EasingStyle.Back,
-        Smooth = Enum.EasingStyle.Quad
-    }
+	Radius = {
+		sm = 6,
+		md = 8,
+		lg = 10,
+		xl = 12,
+	},
+	Animation = {
+		Fast = 0.15,
+		Medium = 0.25,
+		Slow = 0.35,
+		Bounce = Enum.EasingStyle.Back,
+		Smooth = Enum.EasingStyle.Quad,
+	},
 }
 
 -- Enhanced Utility Functions
 local function Tween(object, properties, duration, style)
-    local info = TweenInfo.new(
-        duration or Config.Animation.Medium,
-        style or Config.Animation.Smooth,
-        Enum.EasingDirection.Out
-    )
-    return TweenService:Create(object, info, properties)
+	local info = TweenInfo.new(
+		duration or Config.Animation.Medium,
+		style or Config.Animation.Smooth,
+		Enum.EasingDirection.Out
+	)
+	return TweenService:Create(object, info, properties)
 end
 
 local function Corner(parent, radius)
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius or Config.Radius.md)
-    corner.Parent = parent
-    return corner
+	local corner = Instance.new('UICorner')
+	corner.CornerRadius = UDim.new(0, radius or Config.Radius.md)
+	corner.Parent = parent
+	return corner
 end
 
 local function Stroke(parent, color, thickness)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color or Config.Colors.Border
-    stroke.Thickness = thickness or 1
-    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    stroke.Parent = parent
-    return stroke
+	local stroke = Instance.new('UIStroke')
+	stroke.Color = color or Config.Colors.Border
+	stroke.Thickness = thickness or 1
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Parent = parent
+	return stroke
 end
 
 local function Shadow(parent, opacity)
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 12, 1, 12)
-    shadow.Position = UDim2.new(0, -6, 0, -6)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-    shadow.ImageColor3 = Config.Colors.Overlay
-    shadow.ImageTransparency = 1 - (opacity or 0.1)
-    shadow.ZIndex = parent.ZIndex - 1
-    shadow.Parent = parent.Parent
-    return shadow
+	local shadow = Instance.new('ImageLabel')
+	shadow.Name = 'Shadow'
+	shadow.Size = UDim2.new(1, 12, 1, 12)
+	shadow.Position = UDim2.new(0, -6, 0, -6)
+	shadow.BackgroundTransparency = 1
+	shadow.Image = 'rbxasset://textures/ui/GuiImagePlaceholder.png'
+	shadow.ImageColor3 = Config.Colors.Overlay
+	shadow.ImageTransparency = 1 - (opacity or 0.1)
+	shadow.ZIndex = parent.ZIndex - 1
+	shadow.Parent = parent.Parent
+	return shadow
 end
 
 -- Main Window Creation
 function MinimalGUI:CreateWindow(title, size)
-    title = title or "MinimalGUI"
-    size = size or UDim2.new(0, 520, 0, 400)
-    
-    local window = {
-        Pages = {},
-        CurrentPage = nil,
-        _connections = {}
-    }
-    
-    -- Root Container
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "MinimalGUI"
-    gui.Parent = CoreGui
-    gui.ResetOnSpawn = false
-    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    -- Main Window
-    local main = Instance.new("Frame")
-    main.Name = "Window"
-    main.Size = size
-    main.Position = UDim2.new(0.5, 0, 0.5, 0)
-    main.AnchorPoint = Vector2.new(0.5, 0.5)
-    main.BackgroundColor3 = Config.Colors.Background
-    main.BorderSizePixel = 0
-    main.ZIndex = 100
-    main.Parent = gui
-    Corner(main, Config.Radius.xl)
-    Stroke(main, Config.Colors.Border)
-    Shadow(main, 0.2)
-    
-    -- Header
-    local header = Instance.new("Frame")
-    header.Name = "Header"
-    header.Size = UDim2.new(1, 0, 0, 48)
-    header.BackgroundColor3 = Config.Colors.Surface
-    header.BorderSizePixel = 0
-    header.Parent = main
-    Corner(header, Config.Radius.xl)
-    
-    -- Header Bottom Border
-    local headerBorder = Instance.new("Frame")
-    headerBorder.Size = UDim2.new(1, 0, 0, 1)
-    headerBorder.Position = UDim2.new(0, 0, 1, -1)
-    headerBorder.BackgroundColor3 = Config.Colors.Border
-    headerBorder.BorderSizePixel = 0
-    headerBorder.Parent = header
-    
-    -- Title
-    local titleText = Instance.new("TextLabel")
-    titleText.Name = "Title"
-    titleText.Size = UDim2.new(1, -60, 1, 0)
-    titleText.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
-    titleText.BackgroundTransparency = 1
-    titleText.Text = title
-    titleText.TextColor3 = Config.Colors.Text
-    titleText.TextSize = 14
-    titleText.Font = Config.Fonts.Medium
-    titleText.TextXAlignment = Enum.TextXAlignment.Left
-    titleText.Parent = header
-    
-    -- Close Button
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.Name = "Close"
-    closeBtn.Size = UDim2.new(0, 32, 0, 32)
-    closeBtn.Position = UDim2.new(1, -40, 0, 8)
-    closeBtn.BackgroundColor3 = Config.Colors.Surface2
-    closeBtn.BorderSizePixel = 0
-    closeBtn.Text = "✕"
-    closeBtn.TextColor3 = Config.Colors.TextSecondary
-    closeBtn.TextSize = 12
-    closeBtn.Font = Config.Fonts.Medium
-    closeBtn.Parent = header
-    Corner(closeBtn, Config.Radius.sm)
-    
-    -- Close Button Interactions
-    closeBtn.MouseEnter:Connect(function()
-        Tween(closeBtn, {
-            BackgroundColor3 = Config.Colors.Danger,
-            TextColor3 = Config.Colors.Text
-        }, Config.Animation.Fast):Play()
-    end)
-    
-    closeBtn.MouseLeave:Connect(function()
-        Tween(closeBtn, {
-            BackgroundColor3 = Config.Colors.Surface2,
-            TextColor3 = Config.Colors.TextSecondary
-        }, Config.Animation.Fast):Play()
-    end)
-    
-    closeBtn.MouseButton1Click:Connect(function()
-        Tween(main, {Size = UDim2.new(0, 0, 0, 0)}, Config.Animation.Medium):Play()
-        task.wait(Config.Animation.Medium)
-        gui:Destroy()
-    end)
-    
-    -- Content Container
-    local content = Instance.new("Frame")
-    content.Name = "Content"
-    content.Size = UDim2.new(1, -Config.Spacing.md * 2, 1, -60)
-    content.Position = UDim2.new(0, Config.Spacing.md, 0, 60)
-    content.BackgroundTransparency = 1
-    content.Parent = main
-    
-    -- Navigation Sidebar
-    local nav = Instance.new("Frame")
-    nav.Name = "Navigation"
-    nav.Size = UDim2.new(0, 140, 1, 0)
-    nav.BackgroundTransparency = 1
-    nav.Parent = content
-    
-    local navLayout = Instance.new("UIListLayout")
-    navLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    navLayout.Padding = UDim.new(0, Config.Spacing.xs)
-    navLayout.Parent = nav
-    
-    -- Page Container
-    local pages = Instance.new("Frame")
-    pages.Name = "Pages"
-    pages.Size = UDim2.new(1, -152, 1, 0)
-    pages.Position = UDim2.new(0, 152, 0, 0)
-    pages.BackgroundTransparency = 1
-    pages.Parent = content
-    
-    -- Drag System
-    local dragData = {}
-    
-    header.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragData.dragging = true
-            dragData.startPos = input.Position
-            dragData.frameStart = main.Position
-        end
-    end)
-    
-    table.insert(window._connections, UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and dragData.dragging then
-            local delta = input.Position - dragData.startPos
-            main.Position = UDim2.new(
-                dragData.frameStart.X.Scale,
-                dragData.frameStart.X.Offset + delta.X,
-                dragData.frameStart.Y.Scale,
-                dragData.frameStart.Y.Offset + delta.Y
-            )
-        end
-    end))
-    
-    table.insert(window._connections, UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragData.dragging = false
-        end
-    end))
-    
-    -- Page Creation Method
-    function window:CreatePage(name)
-        local page = {
-            Name = name,
-            Elements = {},
-            _frame = nil,
-            _button = nil
-        }
-        
-        -- Navigation Button
-        local navBtn = Instance.new("TextButton")
-        navBtn.Name = name
-        navBtn.Size = UDim2.new(1, 0, 0, 36)
-        navBtn.BackgroundColor3 = Config.Colors.Surface
-        navBtn.BorderSizePixel = 0
-        navBtn.Text = name
-        navBtn.TextColor3 = Config.Colors.TextSecondary
-        navBtn.TextSize = 13
-        navBtn.Font = Config.Fonts.Regular
-        navBtn.Parent = nav
-        Corner(navBtn, Config.Radius.sm)
-        
-        -- Page Content Frame
-        local pageFrame = Instance.new("ScrollingFrame")
-        pageFrame.Name = name
-        pageFrame.Size = UDim2.new(1, 0, 1, 0)
-        pageFrame.BackgroundTransparency = 1
-        pageFrame.BorderSizePixel = 0
-        pageFrame.ScrollBarThickness = 3
-        pageFrame.ScrollBarImageColor3 = Config.Colors.Border
-        pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-        pageFrame.Visible = false
-        pageFrame.Parent = pages
-        
-        local pageLayout = Instance.new("UIListLayout")
-        pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        pageLayout.Padding = UDim.new(0, Config.Spacing.md)
-        pageLayout.Parent = pageFrame
-        
-        local pagePadding = Instance.new("UIPadding")
-        pagePadding.PaddingTop = UDim.new(0, Config.Spacing.sm)
-        pagePadding.PaddingRight = UDim.new(0, Config.Spacing.sm)
-        pagePadding.Parent = pageFrame
-        
-        -- Auto-resize canvas
-        pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            pageFrame.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + Config.Spacing.lg)
-        end)
-        
-        -- Navigation Logic
-        navBtn.MouseButton1Click:Connect(function()
-            -- Deactivate all pages
-            for _, p in pairs(window.Pages) do
-                p._frame.Visible = false
-                Tween(p._button, {
-                    BackgroundColor3 = Config.Colors.Surface,
-                    TextColor3 = Config.Colors.TextSecondary
-                }, Config.Animation.Fast):Play()
-            end
-            
-            -- Activate current page
-            pageFrame.Visible = true
-            Tween(navBtn, {
-                BackgroundColor3 = Config.Colors.Primary,
-                TextColor3 = Config.Colors.Text
-            }, Config.Animation.Fast):Play()
-            
-            window.CurrentPage = page
-        end)
-        
-        -- Hover Effects
-        navBtn.MouseEnter:Connect(function()
-            if window.CurrentPage ~= page then
-                Tween(navBtn, {BackgroundColor3 = Config.Colors.Surface2}, Config.Animation.Fast):Play()
-            end
-        end)
-        
-        navBtn.MouseLeave:Connect(function()
-            if window.CurrentPage ~= page then
-                Tween(navBtn, {BackgroundColor3 = Config.Colors.Surface}, Config.Animation.Fast):Play()
-            end
-        end)
-        
-        page._button = navBtn
-        page._frame = pageFrame
-        
-        -- Enhanced Element Creation Methods
-        function page:CreateButton(text, callback)
-            local btn = Instance.new("TextButton")
-            btn.Name = text
-            btn.Size = UDim2.new(1, 0, 0, 44)
-            btn.BackgroundColor3 = Config.Colors.Primary
-            btn.BorderSizePixel = 0
-            btn.Text = text
-            btn.TextColor3 = Config.Colors.Text
-            btn.TextSize = 14
-            btn.Font = Config.Fonts.Medium
-            btn.Parent = pageFrame
-            Corner(btn, Config.Radius.md)
-            
-            -- Interactions
-            btn.MouseEnter:Connect(function()
-                Tween(btn, {BackgroundColor3 = Config.Colors.PrimaryHover}, Config.Animation.Fast):Play()
-            end)
-            
-            btn.MouseLeave:Connect(function()
-                Tween(btn, {BackgroundColor3 = Config.Colors.Primary}, Config.Animation.Fast):Play()
-            end)
-            
-            btn.MouseButton1Click:Connect(function()
-                Tween(btn, {Size = UDim2.new(1, -2, 0, 42)}, Config.Animation.Fast):Play()
-                task.wait(Config.Animation.Fast)
-                Tween(btn, {Size = UDim2.new(1, 0, 0, 44)}, Config.Animation.Fast):Play()
-                if callback then callback() end
-            end)
-            
-            table.insert(page.Elements, btn)
-            return btn
-        end
-        
-        function page:CreateToggle(text, defaultValue, callback)
-            local value = defaultValue or false
-            
-            local container = Instance.new("Frame")
-            container.Name = text
-            container.Size = UDim2.new(1, 0, 0, 44)
-            container.BackgroundColor3 = Config.Colors.Surface
-            container.BorderSizePixel = 0
-            container.Parent = pageFrame
-            Corner(container, Config.Radius.md)
-            
-            local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(1, -70, 1, 0)
-            label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
-            label.BackgroundTransparency = 1
-            label.Text = text
-            label.TextColor3 = Config.Colors.Text
-            label.TextSize = 14
-            label.Font = Config.Fonts.Regular
-            label.TextXAlignment = Enum.TextXAlignment.Left
-            label.Parent = container
-            
-            local toggle = Instance.new("TextButton")
-            toggle.Size = UDim2.new(0, 48, 0, 24)
-            toggle.Position = UDim2.new(1, -60, 0.5, -12)
-            toggle.BackgroundColor3 = value and Config.Colors.Primary or Config.Colors.Surface2
-            toggle.BorderSizePixel = 0
-            toggle.Text = ""
-            toggle.Parent = container
-            Corner(toggle, 12)
-            
-            local thumb = Instance.new("Frame")
-            thumb.Size = UDim2.new(0, 20, 0, 20)
-            thumb.Position = value and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
-            thumb.BackgroundColor3 = Config.Colors.Text
-            thumb.BorderSizePixel = 0
-            thumb.Parent = toggle
-            Corner(thumb, 10)
-            
-            toggle.MouseButton1Click:Connect(function()
-                value = not value
-                Tween(toggle, {BackgroundColor3 = value and Config.Colors.Primary or Config.Colors.Surface2}):Play()
-                Tween(thumb, {Position = value and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)}):Play()
-                if callback then callback(value) end
-            end)
-            
-            table.insert(page.Elements, container)
-            return container, function() return value end
-        end
-        
-        function page:CreateSlider(text, min, max, defaultValue, callback)
-            min, max = min or 0, max or 100
-            local value = defaultValue or min
-            
-            local container = Instance.new("Frame")
-            container.Name = text
-            container.Size = UDim2.new(1, 0, 0, 64)
-            container.BackgroundColor3 = Config.Colors.Surface
-            container.BorderSizePixel = 0
-            container.Parent = pageFrame
-            Corner(container, Config.Radius.md)
-            
-            local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(1, -80, 0, 24)
-            label.Position = UDim2.new(0, Config.Spacing.lg, 0, Config.Spacing.sm)
-            label.BackgroundTransparency = 1
-            label.Text = text
-            label.TextColor3 = Config.Colors.Text
-            label.TextSize = 14
-            label.Font = Config.Fonts.Regular
-            label.TextXAlignment = Enum.TextXAlignment.Left
-            label.Parent = container
-            
-            local valueLabel = Instance.new("TextLabel")
-            valueLabel.Size = UDim2.new(0, 60, 0, 24)
-            valueLabel.Position = UDim2.new(1, -72, 0, Config.Spacing.sm)
-            valueLabel.BackgroundTransparency = 1
-            valueLabel.Text = tostring(value)
-            valueLabel.TextColor3 = Config.Colors.Primary
-            valueLabel.TextSize = 14
-            valueLabel.Font = Config.Fonts.Medium
-            valueLabel.TextXAlignment = Enum.TextXAlignment.Right
-            valueLabel.Parent = container
-            
-            local track = Instance.new("Frame")
-            track.Size = UDim2.new(1, -Config.Spacing.lg * 2, 0, 4)
-            track.Position = UDim2.new(0, Config.Spacing.lg, 1, -Config.Spacing.lg)
-            track.BackgroundColor3 = Config.Colors.Surface2
-            track.BorderSizePixel = 0
-            track.Parent = container
-            Corner(track, 2)
-            
-            local fill = Instance.new("Frame")
-            fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
-            fill.BackgroundColor3 = Config.Colors.Primary
-            fill.BorderSizePixel = 0
-            fill.Parent = track
-            Corner(fill, 2)
-            
-            local handle = Instance.new("Frame")
-            handle.Size = UDim2.new(0, 16, 0, 16)
-            handle.Position = UDim2.new((value - min) / (max - min), -8, 0.5, -8)
-            handle.BackgroundColor3 = Config.Colors.Text
-            handle.BorderSizePixel = 0
-            handle.Parent = track
-            Corner(handle, 8)
-            
-            local dragging = false
-            
-            local function updateSlider(input)
-                local percent = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
-                value = math.round(min + (max - min) * percent)
-                valueLabel.Text = tostring(value)
-                
-                Tween(fill, {Size = UDim2.new(percent, 0, 1, 0)}, Config.Animation.Fast):Play()
-                Tween(handle, {Position = UDim2.new(percent, -8, 0.5, -8)}, Config.Animation.Fast):Play()
-                
-                if callback then callback(value) end
-            end
-            
-            track.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = true
-                    updateSlider(input)
-                end
-            end)
-            
-            UserInputService.InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-                    updateSlider(input)
-                end
-            end)
-            
-            UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = false
-                end
-            end)
-            
-            table.insert(page.Elements, container)
-            return container, function() return value end
-        end
-        
-        function page:CreateDropdown(text, options, defaultValue, callback)
-            options = options or {}
-            local value = defaultValue or (options[1] or "Select...")
-            local isOpen = false
-            
-            local container = Instance.new("Frame")
-            container.Name = text
-            container.Size = UDim2.new(1, 0, 0, 44)
-            container.BackgroundColor3 = Config.Colors.Surface
-            container.BorderSizePixel = 0
-            container.Parent = pageFrame
-            Corner(container, Config.Radius.md)
-            
-            local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(0.5, -Config.Spacing.sm, 1, 0)
-            label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
-            label.BackgroundTransparency = 1
-            label.Text = text
-            label.TextColor3 = Config.Colors.Text
-            label.TextSize = 14
-            label.Font = Config.Fonts.Regular
-            label.TextXAlignment = Enum.TextXAlignment.Left
-            label.Parent = container
-            
-            local dropdown = Instance.new("TextButton")
-            dropdown.Size = UDim2.new(0.5, -Config.Spacing.sm, 0, 32)
-            dropdown.Position = UDim2.new(0.5, Config.Spacing.sm, 0, 6)
-            dropdown.BackgroundColor3 = Config.Colors.Background
-            dropdown.BorderSizePixel = 0
-            dropdown.Text = "  " .. value
-            dropdown.TextColor3 = Config.Colors.Text
-            dropdown.TextSize = 13
-            dropdown.Font = Config.Fonts.Regular
-            dropdown.TextXAlignment = Enum.TextXAlignment.Left
-            dropdown.Parent = container
-            Corner(dropdown, Config.Radius.sm)
-            Stroke(dropdown, Config.Colors.Border)
-            
-            local arrow = Instance.new("TextLabel")
-            arrow.Size = UDim2.new(0, 24, 1, 0)
-            arrow.Position = UDim2.new(1, -24, 0, 0)
-            arrow.BackgroundTransparency = 1
-            arrow.Text = "▼"
-            arrow.TextColor3 = Config.Colors.TextMuted
-            arrow.TextSize = 10
-            arrow.Font = Config.Fonts.Regular
-            arrow.Parent = dropdown
-            
-            local optionsList = Instance.new("Frame")
-            optionsList.Name = "Options"
-            optionsList.Size = UDim2.new(0.5, -Config.Spacing.sm, 0, 0)
-            optionsList.Position = UDim2.new(0.5, Config.Spacing.sm, 1, 2)
-            optionsList.BackgroundColor3 = Config.Colors.Background
-            optionsList.BorderSizePixel = 0
-            optionsList.Visible = false
-            optionsList.ZIndex = 1000
-            optionsList.Parent = container
-            Corner(optionsList, Config.Radius.sm)
-            Stroke(optionsList, Config.Colors.Border)
-            
-            local optionsLayout = Instance.new("UIListLayout")
-            optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            optionsLayout.Parent = optionsList
-            
-            local function toggleDropdown()
-                isOpen = not isOpen
-                local targetHeight = isOpen and (#options * 32) or 0
-                
-                optionsList.Visible = true
-                Tween(optionsList, {Size = UDim2.new(0.5, -Config.Spacing.sm, 0, targetHeight)}, Config.Animation.Fast):Play()
-                Tween(arrow, {Rotation = isOpen and 180 or 0}, Config.Animation.Fast):Play()
-                
-                if not isOpen then
-                    task.wait(Config.Animation.Fast)
-                    optionsList.Visible = false
-                end
-            end
-            
-            dropdown.MouseButton1Click:Connect(toggleDropdown)
-            
-            -- Create option buttons
-            for i, option in ipairs(options) do
-                local optionBtn = Instance.new("TextButton")
-                optionBtn.Size = UDim2.new(1, 0, 0, 32)
-                optionBtn.BackgroundColor3 = Config.Colors.Background
-                optionBtn.BackgroundTransparency = 1
-                optionBtn.BorderSizePixel = 0
-                optionBtn.Text = "  " .. option
-                optionBtn.TextColor3 = Config.Colors.Text
-                optionBtn.TextSize = 13
-                optionBtn.Font = Config.Fonts.Regular
-                optionBtn.TextXAlignment = Enum.TextXAlignment.Left
-                optionBtn.LayoutOrder = i
-                optionBtn.Parent = optionsList
-                
-                optionBtn.MouseEnter:Connect(function()
-                    Tween(optionBtn, {BackgroundTransparency = 0, BackgroundColor3 = Config.Colors.Surface}):Play()
-                end)
-                
-                optionBtn.MouseLeave:Connect(function()
-                    Tween(optionBtn, {BackgroundTransparency = 1}):Play()
-                end)
-                
-                optionBtn.MouseButton1Click:Connect(function()
-                    value = option
-                    dropdown.Text = "  " .. option
-                    toggleDropdown()
-                    if callback then callback(option) end
-                end)
-            end
-            
-            table.insert(page.Elements, container)
-            return container, function() return value end
-        end
-        
-        window.Pages[name] = page
-        
-        -- Auto-activate first page
-        if not window.CurrentPage then
-            navBtn.MouseButton1Click:Connect(function() end)()
-        end
-        
-        return page
-    end
-    
-    function window:Destroy()
-        for _, connection in pairs(window._connections) do
-            connection:Disconnect()
-        end
-        gui:Destroy()
-    end
-    
-    -- Smooth entrance animation
-    main.Size = UDim2.new(0, 0, 0, 0)
-    Tween(main, {Size = size}, Config.Animation.Slow, Config.Animation.Bounce):Play()
-    
-    return window
+	title = title or 'MinimalGUI'
+	size = size or UDim2.new(0, 520, 0, 400)
+
+	local window = {
+		Pages = {},
+		CurrentPage = nil,
+		_connections = {},
+	}
+
+	-- Root Container
+	local gui = Instance.new('ScreenGui')
+	gui.Name = 'MinimalGUI'
+	gui.Parent = CoreGui
+	gui.ResetOnSpawn = false
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	-- Main Window
+	local main = Instance.new('Frame')
+	main.Name = 'Window'
+	main.Size = size
+	main.Position = UDim2.new(0.5, 0, 0.5, 0)
+	main.AnchorPoint = Vector2.new(0.5, 0.5)
+	main.BackgroundColor3 = Config.Colors.Background
+	main.BorderSizePixel = 0
+	main.ZIndex = 100
+	main.Parent = gui
+	Corner(main, Config.Radius.xl)
+	Stroke(main, Config.Colors.Border)
+	Shadow(main, 0.2)
+
+	-- Header
+	local header = Instance.new('Frame')
+	header.Name = 'Header'
+	header.Size = UDim2.new(1, 0, 0, 48)
+	header.BackgroundColor3 = Config.Colors.Surface
+	header.BorderSizePixel = 0
+	header.Parent = main
+	Corner(header, Config.Radius.xl)
+
+	-- Header Bottom Border
+	local headerBorder = Instance.new('Frame')
+	headerBorder.Size = UDim2.new(1, 0, 0, 1)
+	headerBorder.Position = UDim2.new(0, 0, 1, -1)
+	headerBorder.BackgroundColor3 = Config.Colors.Border
+	headerBorder.BorderSizePixel = 0
+	headerBorder.Parent = header
+
+	-- Title
+	local titleText = Instance.new('TextLabel')
+	titleText.Name = 'Title'
+	titleText.Size = UDim2.new(1, -60, 1, 0)
+	titleText.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
+	titleText.BackgroundTransparency = 1
+	titleText.Text = title
+	titleText.TextColor3 = Config.Colors.Text
+	titleText.TextSize = 14
+	titleText.Font = Config.Fonts.Medium
+	titleText.TextXAlignment = Enum.TextXAlignment.Left
+	titleText.Parent = header
+
+	-- Close Button
+	local closeBtn = Instance.new('TextButton')
+	closeBtn.Name = 'Close'
+	closeBtn.Size = UDim2.new(0, 32, 0, 32)
+	closeBtn.Position = UDim2.new(1, -40, 0, 8)
+	closeBtn.BackgroundColor3 = Config.Colors.Surface2
+	closeBtn.BorderSizePixel = 0
+	closeBtn.Text = '✕'
+	closeBtn.TextColor3 = Config.Colors.TextSecondary
+	closeBtn.TextSize = 12
+	closeBtn.Font = Config.Fonts.Medium
+	closeBtn.Parent = header
+	Corner(closeBtn, Config.Radius.sm)
+
+	-- Close Button Interactions
+	closeBtn.MouseEnter:Connect(function()
+		Tween(closeBtn, {
+			BackgroundColor3 = Config.Colors.Danger,
+			TextColor3 = Config.Colors.Text,
+		}, Config.Animation.Fast):Play()
+	end)
+
+	closeBtn.MouseLeave:Connect(function()
+		Tween(closeBtn, {
+			BackgroundColor3 = Config.Colors.Surface2,
+			TextColor3 = Config.Colors.TextSecondary,
+		}, Config.Animation.Fast):Play()
+	end)
+
+	closeBtn.MouseButton1Click:Connect(function()
+		Tween(main, { Size = UDim2.new(0, 0, 0, 0) }, Config.Animation.Medium):Play()
+		task.wait(Config.Animation.Medium)
+		gui:Destroy()
+	end)
+
+	-- Content Container
+	local content = Instance.new('Frame')
+	content.Name = 'Content'
+	content.Size = UDim2.new(1, -Config.Spacing.md * 2, 1, -60)
+	content.Position = UDim2.new(0, Config.Spacing.md, 0, 60)
+	content.BackgroundTransparency = 1
+	content.Parent = main
+
+	-- Navigation Sidebar
+	local nav = Instance.new('Frame')
+	nav.Name = 'Navigation'
+	nav.Size = UDim2.new(0, 140, 1, 0)
+	nav.BackgroundTransparency = 1
+	nav.Parent = content
+
+	local navLayout = Instance.new('UIListLayout')
+	navLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	navLayout.Padding = UDim.new(0, Config.Spacing.xs)
+	navLayout.Parent = nav
+
+	-- Page Container
+	local pages = Instance.new('Frame')
+	pages.Name = 'Pages'
+	pages.Size = UDim2.new(1, -152, 1, 0)
+	pages.Position = UDim2.new(0, 152, 0, 0)
+	pages.BackgroundTransparency = 1
+	pages.Parent = content
+
+	-- Drag System
+	local dragData = {}
+
+	header.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragData.dragging = true
+			dragData.startPos = input.Position
+			dragData.frameStart = main.Position
+		end
+	end)
+
+	table.insert(
+		window._connections,
+		UserInputService.InputChanged:Connect(function(input)
+			if
+				input.UserInputType == Enum.UserInputType.MouseMovement
+				and dragData.dragging
+			then
+				local delta = input.Position - dragData.startPos
+				main.Position = UDim2.new(
+					dragData.frameStart.X.Scale,
+					dragData.frameStart.X.Offset + delta.X,
+					dragData.frameStart.Y.Scale,
+					dragData.frameStart.Y.Offset + delta.Y
+				)
+			end
+		end)
+	)
+
+	table.insert(
+		window._connections,
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				dragData.dragging = false
+			end
+		end)
+	)
+
+	-- Page Creation Method
+	function window:CreatePage(name)
+		local page = {
+			Name = name,
+			Elements = {},
+			_frame = nil,
+			_button = nil,
+		}
+
+		-- Navigation Button
+		local navBtn = Instance.new('TextButton')
+		navBtn.Name = name
+		navBtn.Size = UDim2.new(1, 0, 0, 36)
+		navBtn.BackgroundColor3 = Config.Colors.Surface
+		navBtn.BorderSizePixel = 0
+		navBtn.Text = name
+		navBtn.TextColor3 = Config.Colors.TextSecondary
+		navBtn.TextSize = 13
+		navBtn.Font = Config.Fonts.Regular
+		navBtn.Parent = nav
+		Corner(navBtn, Config.Radius.sm)
+
+		-- Page Content Frame
+		local pageFrame = Instance.new('ScrollingFrame')
+		pageFrame.Name = name
+		pageFrame.Size = UDim2.new(1, 0, 1, 0)
+		pageFrame.BackgroundTransparency = 1
+		pageFrame.BorderSizePixel = 0
+		pageFrame.ScrollBarThickness = 3
+		pageFrame.ScrollBarImageColor3 = Config.Colors.Border
+		pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+		pageFrame.Visible = false
+		pageFrame.Parent = pages
+
+		local pageLayout = Instance.new('UIListLayout')
+		pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		pageLayout.Padding = UDim.new(0, Config.Spacing.md)
+		pageLayout.Parent = pageFrame
+
+		local pagePadding = Instance.new('UIPadding')
+		pagePadding.PaddingTop = UDim.new(0, Config.Spacing.sm)
+		pagePadding.PaddingRight = UDim.new(0, Config.Spacing.sm)
+		pagePadding.Parent = pageFrame
+
+		-- Auto-resize canvas
+		pageLayout
+			:GetPropertyChangedSignal('AbsoluteContentSize')
+			:Connect(function()
+				pageFrame.CanvasSize = UDim2.new(
+					0,
+					0,
+					0,
+					pageLayout.AbsoluteContentSize.Y + Config.Spacing.lg
+				)
+			end)
+
+		-- Navigation Logic
+		navBtn.MouseButton1Click:Connect(function()
+			-- Deactivate all pages
+			for _, p in pairs(window.Pages) do
+				p._frame.Visible = false
+				Tween(p._button, {
+					BackgroundColor3 = Config.Colors.Surface,
+					TextColor3 = Config.Colors.TextSecondary,
+				}, Config.Animation.Fast):Play()
+			end
+
+			-- Activate current page
+			pageFrame.Visible = true
+			Tween(navBtn, {
+				BackgroundColor3 = Config.Colors.Primary,
+				TextColor3 = Config.Colors.Text,
+			}, Config.Animation.Fast):Play()
+
+			window.CurrentPage = page
+		end)
+
+		-- Hover Effects
+		navBtn.MouseEnter:Connect(function()
+			if window.CurrentPage ~= page then
+				Tween(
+					navBtn,
+					{ BackgroundColor3 = Config.Colors.Surface2 },
+					Config.Animation.Fast
+				):Play()
+			end
+		end)
+
+		navBtn.MouseLeave:Connect(function()
+			if window.CurrentPage ~= page then
+				Tween(
+					navBtn,
+					{ BackgroundColor3 = Config.Colors.Surface },
+					Config.Animation.Fast
+				):Play()
+			end
+		end)
+
+		page._button = navBtn
+		page._frame = pageFrame
+
+		-- Enhanced Element Creation Methods
+		function page:CreateButton(text, callback)
+			local btn = Instance.new('TextButton')
+			btn.Name = text
+			btn.Size = UDim2.new(1, 0, 0, 44)
+			btn.BackgroundColor3 = Config.Colors.Primary
+			btn.BorderSizePixel = 0
+			btn.Text = text
+			btn.TextColor3 = Config.Colors.Text
+			btn.TextSize = 14
+			btn.Font = Config.Fonts.Medium
+			btn.Parent = pageFrame
+			Corner(btn, Config.Radius.md)
+
+			-- Interactions
+			btn.MouseEnter:Connect(function()
+				Tween(
+					btn,
+					{ BackgroundColor3 = Config.Colors.PrimaryHover },
+					Config.Animation.Fast
+				):Play()
+			end)
+
+			btn.MouseLeave:Connect(function()
+				Tween(
+					btn,
+					{ BackgroundColor3 = Config.Colors.Primary },
+					Config.Animation.Fast
+				):Play()
+			end)
+
+			btn.MouseButton1Click:Connect(function()
+				Tween(
+					btn,
+					{ Size = UDim2.new(1, -2, 0, 42) },
+					Config.Animation.Fast
+				):Play()
+				task.wait(Config.Animation.Fast)
+				Tween(
+					btn,
+					{ Size = UDim2.new(1, 0, 0, 44) },
+					Config.Animation.Fast
+				):Play()
+				if callback then
+					callback()
+				end
+			end)
+
+			table.insert(page.Elements, btn)
+			return btn
+		end
+
+		function page:CreateToggle(text, defaultValue, callback)
+			local value = defaultValue or false
+
+			local container = Instance.new('Frame')
+			container.Name = text
+			container.Size = UDim2.new(1, 0, 0, 44)
+			container.BackgroundColor3 = Config.Colors.Surface
+			container.BorderSizePixel = 0
+			container.Parent = pageFrame
+			Corner(container, Config.Radius.md)
+
+			local label = Instance.new('TextLabel')
+			label.Size = UDim2.new(1, -70, 1, 0)
+			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = Config.Colors.Text
+			label.TextSize = 14
+			label.Font = Config.Fonts.Regular
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = container
+
+			local toggle = Instance.new('TextButton')
+			toggle.Size = UDim2.new(0, 48, 0, 24)
+			toggle.Position = UDim2.new(1, -60, 0.5, -12)
+			toggle.BackgroundColor3 = value and Config.Colors.Primary
+				or Config.Colors.Surface2
+			toggle.BorderSizePixel = 0
+			toggle.Text = ''
+			toggle.Parent = container
+			Corner(toggle, 12)
+
+			local thumb = Instance.new('Frame')
+			thumb.Size = UDim2.new(0, 20, 0, 20)
+			thumb.Position = value and UDim2.new(1, -22, 0.5, -10)
+				or UDim2.new(0, 2, 0.5, -10)
+			thumb.BackgroundColor3 = Config.Colors.Text
+			thumb.BorderSizePixel = 0
+			thumb.Parent = toggle
+			Corner(thumb, 10)
+
+			toggle.MouseButton1Click:Connect(function()
+				value = not value
+				Tween(toggle, {
+					BackgroundColor3 = value and Config.Colors.Primary
+						or Config.Colors.Surface2,
+				}):Play()
+				Tween(thumb, {
+					Position = value and UDim2.new(1, -22, 0.5, -10)
+						or UDim2.new(0, 2, 0.5, -10),
+				}):Play()
+				if callback then
+					callback(value)
+				end
+			end)
+
+			table.insert(page.Elements, container)
+			return container, function()
+				return value
+			end
+		end
+
+		function page:CreateSlider(text, min, max, defaultValue, callback)
+			min, max = min or 0, max or 100
+			local value = defaultValue or min
+
+			local container = Instance.new('Frame')
+			container.Name = text
+			container.Size = UDim2.new(1, 0, 0, 64)
+			container.BackgroundColor3 = Config.Colors.Surface
+			container.BorderSizePixel = 0
+			container.Parent = pageFrame
+			Corner(container, Config.Radius.md)
+
+			local label = Instance.new('TextLabel')
+			label.Size = UDim2.new(1, -80, 0, 24)
+			label.Position = UDim2.new(
+				0,
+				Config.Spacing.lg,
+				0,
+				Config.Spacing.sm
+			)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = Config.Colors.Text
+			label.TextSize = 14
+			label.Font = Config.Fonts.Regular
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = container
+
+			local valueLabel = Instance.new('TextLabel')
+			valueLabel.Size = UDim2.new(0, 60, 0, 24)
+			valueLabel.Position = UDim2.new(1, -72, 0, Config.Spacing.sm)
+			valueLabel.BackgroundTransparency = 1
+			valueLabel.Text = tostring(value)
+			valueLabel.TextColor3 = Config.Colors.Primary
+			valueLabel.TextSize = 14
+			valueLabel.Font = Config.Fonts.Medium
+			valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+			valueLabel.Parent = container
+
+			local track = Instance.new('Frame')
+			track.Size = UDim2.new(1, -Config.Spacing.lg * 2, 0, 4)
+			track.Position = UDim2.new(
+				0,
+				Config.Spacing.lg,
+				1,
+				-Config.Spacing.lg
+			)
+			track.BackgroundColor3 = Config.Colors.Surface2
+			track.BorderSizePixel = 0
+			track.Parent = container
+			Corner(track, 2)
+
+			local fill = Instance.new('Frame')
+			fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
+			fill.BackgroundColor3 = Config.Colors.Primary
+			fill.BorderSizePixel = 0
+			fill.Parent = track
+			Corner(fill, 2)
+
+			local handle = Instance.new('Frame')
+			handle.Size = UDim2.new(0, 16, 0, 16)
+			handle.Position = UDim2.new(
+				(value - min) / (max - min),
+				-8,
+				0.5,
+				-8
+			)
+			handle.BackgroundColor3 = Config.Colors.Text
+			handle.BorderSizePixel = 0
+			handle.Parent = track
+			Corner(handle, 8)
+
+			local dragging = false
+
+			local function updateSlider(input)
+				local percent = math.clamp(
+					(input.Position.X - track.AbsolutePosition.X)
+						/ track.AbsoluteSize.X,
+					0,
+					1
+				)
+				value = math.round(min + (max - min) * percent)
+				valueLabel.Text = tostring(value)
+
+				Tween(
+					fill,
+					{ Size = UDim2.new(percent, 0, 1, 0) },
+					Config.Animation.Fast
+				):Play()
+				Tween(
+					handle,
+					{ Position = UDim2.new(percent, -8, 0.5, -8) },
+					Config.Animation.Fast
+				):Play()
+
+				if callback then
+					callback(value)
+				end
+			end
+
+			track.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					dragging = true
+					updateSlider(input)
+				end
+			end)
+
+			UserInputService.InputChanged:Connect(function(input)
+				if
+					input.UserInputType == Enum.UserInputType.MouseMovement
+					and dragging
+				then
+					updateSlider(input)
+				end
+			end)
+
+			UserInputService.InputEnded:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					dragging = false
+				end
+			end)
+
+			table.insert(page.Elements, container)
+			return container, function()
+				return value
+			end
+		end
+
+		function page:CreateDropdown(text, options, defaultValue, callback)
+			options = options or {}
+			local value = defaultValue or (options[1] or 'Select...')
+			local isOpen = false
+
+			local container = Instance.new('Frame')
+			container.Name = text
+			container.Size = UDim2.new(1, 0, 0, 44)
+			container.BackgroundColor3 = Config.Colors.Surface
+			container.BorderSizePixel = 0
+			container.Parent = pageFrame
+			Corner(container, Config.Radius.md)
+
+			local label = Instance.new('TextLabel')
+			label.Size = UDim2.new(0.5, -Config.Spacing.sm, 1, 0)
+			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = Config.Colors.Text
+			label.TextSize = 14
+			label.Font = Config.Fonts.Regular
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = container
+
+			local dropdown = Instance.new('TextButton')
+			dropdown.Size = UDim2.new(0.5, -Config.Spacing.sm, 0, 32)
+			dropdown.Position = UDim2.new(0.5, Config.Spacing.sm, 0, 6)
+			dropdown.BackgroundColor3 = Config.Colors.Background
+			dropdown.BorderSizePixel = 0
+			dropdown.Text = '  ' .. value
+			dropdown.TextColor3 = Config.Colors.Text
+			dropdown.TextSize = 13
+			dropdown.Font = Config.Fonts.Regular
+			dropdown.TextXAlignment = Enum.TextXAlignment.Left
+			dropdown.Parent = container
+			Corner(dropdown, Config.Radius.sm)
+			Stroke(dropdown, Config.Colors.Border)
+
+			local arrow = Instance.new('TextLabel')
+			arrow.Size = UDim2.new(0, 24, 1, 0)
+			arrow.Position = UDim2.new(1, -24, 0, 0)
+			arrow.BackgroundTransparency = 1
+			arrow.Text = '▼'
+			arrow.TextColor3 = Config.Colors.TextMuted
+			arrow.TextSize = 10
+			arrow.Font = Config.Fonts.Regular
+			arrow.Parent = dropdown
+
+			local optionsList = Instance.new('Frame')
+			optionsList.Name = 'Options'
+			optionsList.Size = UDim2.new(0.5, -Config.Spacing.sm, 0, 0)
+			optionsList.Position = UDim2.new(0.5, Config.Spacing.sm, 1, 2)
+			optionsList.BackgroundColor3 = Config.Colors.Background
+			optionsList.BorderSizePixel = 0
+			optionsList.Visible = false
+			optionsList.ZIndex = 1000
+			optionsList.Parent = container
+			Corner(optionsList, Config.Radius.sm)
+			Stroke(optionsList, Config.Colors.Border)
+
+			local optionsLayout = Instance.new('UIListLayout')
+			optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			optionsLayout.Parent = optionsList
+
+			local function toggleDropdown()
+				isOpen = not isOpen
+				local targetHeight = isOpen and (#options * 32) or 0
+
+				optionsList.Visible = true
+				Tween(optionsList, {
+					Size = UDim2.new(0.5, -Config.Spacing.sm, 0, targetHeight),
+				}, Config.Animation.Fast):Play()
+				Tween(
+					arrow,
+					{ Rotation = isOpen and 180 or 0 },
+					Config.Animation.Fast
+				):Play()
+
+				if not isOpen then
+					task.wait(Config.Animation.Fast)
+					optionsList.Visible = false
+				end
+			end
+
+			dropdown.MouseButton1Click:Connect(toggleDropdown)
+
+			-- Create option buttons
+			for i, option in ipairs(options) do
+				local optionBtn = Instance.new('TextButton')
+				optionBtn.Size = UDim2.new(1, 0, 0, 32)
+				optionBtn.BackgroundColor3 = Config.Colors.Background
+				optionBtn.BackgroundTransparency = 1
+				optionBtn.BorderSizePixel = 0
+				optionBtn.Text = '  ' .. option
+				optionBtn.TextColor3 = Config.Colors.Text
+				optionBtn.TextSize = 13
+				optionBtn.Font = Config.Fonts.Regular
+				optionBtn.TextXAlignment = Enum.TextXAlignment.Left
+				optionBtn.LayoutOrder = i
+				optionBtn.Parent = optionsList
+
+				optionBtn.MouseEnter:Connect(function()
+					Tween(optionBtn, {
+						BackgroundTransparency = 0,
+						BackgroundColor3 = Config.Colors.Surface,
+					}):Play()
+				end)
+
+				optionBtn.MouseLeave:Connect(function()
+					Tween(optionBtn, { BackgroundTransparency = 1 }):Play()
+				end)
+
+				optionBtn.MouseButton1Click:Connect(function()
+					value = option
+					dropdown.Text = '  ' .. option
+					toggleDropdown()
+					if callback then
+						callback(option)
+					end
+				end)
+			end
+
+			table.insert(page.Elements, container)
+			return container, function()
+				return value
+			end
+		end
+
+		window.Pages[name] = page
+
+		-- Auto-activate first page
+		local function ActivatePage(p)
+			for _, pg in pairs(window.Pages) do
+				pg._frame.Visible = false
+				Tween(pg._button, {
+					BackgroundColor3 = Config.Colors.Surface,
+					TextColor3 = Config.Colors.TextSecondary,
+				}, Config.Animation.Fast):Play()
+			end
+
+			p._frame.Visible = true
+			Tween(p._button, {
+				BackgroundColor3 = Config.Colors.Primary,
+				TextColor3 = Config.Colors.Text,
+			}, Config.Animation.Fast):Play()
+			window.CurrentPage = p
+		end
+
+		if not window.CurrentPage then
+			ActivatePage(page)
+		end
+
+		return page
+	end
+
+	function window:Destroy()
+		for _, connection in pairs(window._connections) do
+			connection:Disconnect()
+		end
+		gui:Destroy()
+	end
+
+	-- Smooth entrance animation
+	main.Size = UDim2.new(0, 0, 0, 0)
+	Tween(main, { Size = size }, Config.Animation.Slow, Config.Animation.Bounce):Play()
+
+	return window
 end
 
 return MinimalGUI
