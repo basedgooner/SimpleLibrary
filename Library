@@ -80,7 +80,7 @@ end
 
 local function Stroke(parent, color, thickness)
 	local stroke = Instance.new('UIStroke')
-	Stroke(container, Config.Colors.Border)
+	Stroke(container, getColors().Border)
 	stroke.Thickness = thickness or 1
 	stroke.Transparency = 0
 	stroke.Parent = parent
@@ -525,7 +525,7 @@ function MinimalGUI:CreateWindow(title, size)
 			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
 			label.BackgroundTransparency = 1
 			label.Text = text
-			label.TextColor3 = Config.Colors.Text
+			label.TextColor3 = getColors().Text
 			label.TextSize = 14
 			label.Font = Config.Fonts.Regular
 			label.TextXAlignment = Enum.TextXAlignment.Left
@@ -536,7 +536,7 @@ function MinimalGUI:CreateWindow(title, size)
 			valueLabel.Position = UDim2.new(1, -Config.Spacing.lg - 50, 0, 0)
 			valueLabel.BackgroundTransparency = 1
 			valueLabel.Text = tostring(value)
-			valueLabel.TextColor3 = Config.Colors.Primary
+			valueLabel.TextColor3 = getColors().Primary
 			valueLabel.TextSize = 13
 			valueLabel.Font = Config.Fonts.Bold
 			valueLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -558,7 +558,7 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local fill = Instance.new('Frame')
 			fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
-			fill.BackgroundColor3 = Config.Colors.Primary
+			fill.BackgroundColor3 = getColors().Primary
 			fill.BorderSizePixel = 0
 			fill.Parent = track
 			Corner(fill, 4)
@@ -631,7 +631,7 @@ function MinimalGUI:CreateWindow(title, size)
 			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
 			label.BackgroundTransparency = 1
 			label.Text = text
-			label.TextColor3 = Config.Colors.Text
+			label.TextColor3 = getColors().Text
 			label.TextSize = 14
 			label.Font = Config.Fonts.Regular
 			label.TextXAlignment = Enum.TextXAlignment.Left
@@ -640,20 +640,20 @@ function MinimalGUI:CreateWindow(title, size)
 			local dropdown = Instance.new('TextButton')
 			dropdown.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 28)
 			dropdown.Position = UDim2.new(0.4, 0, 0.5, -14)
-			dropdown.BackgroundColor3 = Config.Colors.Surface2
+			dropdown.BackgroundColor3 = getColors().Surface2
 			dropdown.BorderSizePixel = 0
 			dropdown.Text = ''
 			dropdown.ClipsDescendants = true
 			dropdown.Parent = container
 			Corner(dropdown, Config.Radius.sm)
-			Stroke(container, Config.Colors.BorderLight)
+			Stroke(container, getColors().BorderLight)
 
 			local valueText = Instance.new('TextLabel')
 			valueText.Size = UDim2.new(1, -28, 1, 0)
 			valueText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
 			valueText.BackgroundTransparency = 1
 			valueText.Text = value
-			valueText.TextColor3 = Config.Colors.Text
+			valueText.TextColor3 = getColors().Text
 			valueText.TextSize = 13
 			valueText.Font = Config.Fonts.Regular
 			valueText.TextXAlignment = Enum.TextXAlignment.Left
@@ -664,7 +664,7 @@ function MinimalGUI:CreateWindow(title, size)
 			arrow.Position = UDim2.new(1, -20, 0, 0)
 			arrow.BackgroundTransparency = 1
 			arrow.Text = '▼'
-			arrow.TextColor3 = Config.Colors.TextMuted
+			arrow.TextColor3 = getColors().TextMuted
 			arrow.TextSize = 9
 			arrow.Font = Config.Fonts.Regular
 			arrow.Parent = dropdown
@@ -678,7 +678,7 @@ function MinimalGUI:CreateWindow(title, size)
 			optionsList.ZIndex = 1000
 			optionsList.Parent = container
 			Corner(optionsList, Config.Radius.sm)
-			Stroke(container, Config.Colors.BorderLight)
+			Stroke(container, getColors().BorderLight)
 
 			local optionsLayout = Instance.new('UIListLayout')
 			optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -721,7 +721,7 @@ function MinimalGUI:CreateWindow(title, size)
 				optionText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
 				optionText.BackgroundTransparency = 1
 				optionText.Text = option
-				optionText.TextColor3 = Config.Colors.Text
+				optionText.TextColor3 = getColors().Text
 				optionText.TextSize = 13
 				optionText.Font = Config.Fonts.Regular
 				optionText.TextXAlignment = Enum.TextXAlignment.Left
@@ -730,7 +730,7 @@ function MinimalGUI:CreateWindow(title, size)
 				optionBtn.MouseEnter:Connect(function()
 					Tween(optionBtn, {
 						BackgroundTransparency = 0,
-						BackgroundColor3 = Config.Colors.Surface2,
+						BackgroundColor3 = getColors().Surface2,
 					}, Config.Animation.Fast):Play()
 				end)
 				optionBtn.MouseLeave:Connect(function()
@@ -761,7 +761,7 @@ function MinimalGUI:CreateWindow(title, size)
 		if not window.CurrentPage then
 			pageFrame.Visible = true
 			Tween(tabBtn, {
-				BackgroundColor3 = Config.Colors.Primary,
+				BackgroundColor3 = getColors().Primary,
 				TextColor3 = Config.Colors.Surface,
 			}, Config.Animation.Fast):Play()
 			window.CurrentPage = page
