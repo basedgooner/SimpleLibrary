@@ -99,12 +99,12 @@ function MinimalGUI:CreateWindow(title, size)
 		_isDarkTheme = false,
 	}
 
-	function window:getColors()
+	function window:window:getColors()
 		return self._isDarkTheme and Config.Colors.Dark or Config.Colors.Light
 	end
 
 	local function updateTheme()
-		local colors = getColors()
+		local colors = window:getColors()
 		main.BackgroundColor3 = colors.Background
 		header.BackgroundColor3 = colors.Surface
 		headerSeparator.BackgroundColor3 = colors.Border
@@ -143,15 +143,15 @@ function MinimalGUI:CreateWindow(title, size)
 	main.Size = size
 	main.Position = UDim2.new(0.5, 0, 0.5, 0)
 	main.AnchorPoint = Vector2.new(0.5, 0.5)
-	main.BackgroundColor3 = getColors().Background
+	main.BackgroundColor3 = window:getColors().Background
 	main.BorderSizePixel = 0
 	main.Parent = gui
 	Corner(main, Config.Radius.xl)
-	Stroke(main, getColors().Border, 1.5)
+	Stroke(main, window:getColors().Border, 1.5)
 
 	local header = Instance.new('Frame')
 	header.Size = UDim2.new(1, 0, 0, 56)
-	header.BackgroundColor3 = getColors().Surface
+	header.BackgroundColor3 = window:getColors().Surface
 	header.BorderSizePixel = 0
 	header.Parent = main
 	Corner(header, Config.Radius.xl)
@@ -159,7 +159,7 @@ function MinimalGUI:CreateWindow(title, size)
 	local headerSeparator = Instance.new('Frame')
 	headerSeparator.Size = UDim2.new(1, -40, 0, 1)
 	headerSeparator.Position = UDim2.new(0, 20, 1, -1)
-	headerSeparator.BackgroundColor3 = getColors().Border
+	headerSeparator.BackgroundColor3 = window:getColors().Border
 	headerSeparator.BorderSizePixel = 0
 	headerSeparator.Parent = header
 
@@ -168,7 +168,7 @@ function MinimalGUI:CreateWindow(title, size)
 	titleText.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 18)
 	titleText.BackgroundTransparency = 1
 	titleText.Text = title
-	titleText.TextColor3 = getColors().Text
+	titleText.TextColor3 = window:getColors().Text
 	titleText.TextSize = 15
 	titleText.Font = Config.Fonts.Bold
 	titleText.TextXAlignment = Enum.TextXAlignment.Left
@@ -177,10 +177,10 @@ function MinimalGUI:CreateWindow(title, size)
 	local themeBtn = Instance.new('TextButton')
 	themeBtn.Size = UDim2.new(0, 28, 0, 28)
 	themeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 62, 0, 14)
-	themeBtn.BackgroundColor3 = getColors().Surface2
+	themeBtn.BackgroundColor3 = window:getColors().Surface2
 	themeBtn.BorderSizePixel = 0
 	themeBtn.Text = '☀'
-	themeBtn.TextColor3 = getColors().TextMuted
+	themeBtn.TextColor3 = window:getColors().TextMuted
 	themeBtn.TextSize = 14
 	themeBtn.Font = Config.Fonts.Medium
 	themeBtn.Parent = header
@@ -188,14 +188,14 @@ function MinimalGUI:CreateWindow(title, size)
 
 	themeBtn.MouseEnter:Connect(function()
 		Tween(themeBtn, {
-			BackgroundColor3 = getColors().Surface3,
-			TextColor3 = getColors().Text,
+			BackgroundColor3 = window:getColors().Surface3,
+			TextColor3 = window:getColors().Text,
 		}, Config.Animation.Fast):Play()
 	end)
 	themeBtn.MouseLeave:Connect(function()
 		Tween(themeBtn, {
-			BackgroundColor3 = getColors().Surface2,
-			TextColor3 = getColors().TextMuted,
+			BackgroundColor3 = window:getColors().Surface2,
+			TextColor3 = window:getColors().TextMuted,
 		}, Config.Animation.Fast):Play()
 	end)
 	themeBtn.MouseButton1Click:Connect(function()
@@ -207,10 +207,10 @@ function MinimalGUI:CreateWindow(title, size)
 	local closeBtn = Instance.new('TextButton')
 	closeBtn.Size = UDim2.new(0, 28, 0, 28)
 	closeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 28, 0, 14)
-	closeBtn.BackgroundColor3 = getColors().Surface2
+	closeBtn.BackgroundColor3 = window:getColors().Surface2
 	closeBtn.BorderSizePixel = 0
 	closeBtn.Text = '×'
-	closeBtn.TextColor3 = getColors().TextMuted
+	closeBtn.TextColor3 = window:getColors().TextMuted
 	closeBtn.TextSize = 16
 	closeBtn.Font = Config.Fonts.Medium
 	closeBtn.Parent = header
@@ -218,14 +218,14 @@ function MinimalGUI:CreateWindow(title, size)
 
 	closeBtn.MouseEnter:Connect(function()
 		Tween(closeBtn, {
-			BackgroundColor3 = getColors().Danger,
-			TextColor3 = getColors().Surface,
+			BackgroundColor3 = window:getColors().Danger,
+			TextColor3 = window:getColors().Surface,
 		}, Config.Animation.Fast):Play()
 	end)
 	closeBtn.MouseLeave:Connect(function()
 		Tween(closeBtn, {
-			BackgroundColor3 = getColors().Surface2,
-			TextColor3 = getColors().TextMuted,
+			BackgroundColor3 = window:getColors().Surface2,
+			TextColor3 = window:getColors().TextMuted,
 		}, Config.Animation.Fast):Play()
 	end)
 	closeBtn.MouseButton1Click:Connect(function()
@@ -303,10 +303,10 @@ function MinimalGUI:CreateWindow(title, size)
 		local tabBtn = Instance.new('TextButton')
 		tabBtn.Size = UDim2.new(0, 0, 0, 32)
 		tabBtn.AutomaticSize = Enum.AutomaticSize.X
-		tabBtn.BackgroundColor3 = getColors().Surface2
+		tabBtn.BackgroundColor3 = window:getColors().Surface2
 		tabBtn.BorderSizePixel = 0
 		tabBtn.Text = name
-		tabBtn.TextColor3 = getColors().TextSecondary
+		tabBtn.TextColor3 = window:getColors().TextSecondary
 		tabBtn.TextSize = 13
 		tabBtn.Font = Config.Fonts.Medium
 		tabBtn.LayoutOrder = #window.Pages + 1
@@ -323,7 +323,7 @@ function MinimalGUI:CreateWindow(title, size)
 		pageFrame.BackgroundTransparency = 1
 		pageFrame.BorderSizePixel = 0
 		pageFrame.ScrollBarThickness = 4
-		pageFrame.ScrollBarImageColor3 = getColors().Primary
+		pageFrame.ScrollBarImageColor3 = window:getColors().Primary
 		pageFrame.ScrollBarImageTransparency = 0.3
 		pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 		pageFrame.Visible = false
@@ -354,14 +354,14 @@ function MinimalGUI:CreateWindow(title, size)
 			for _, p in pairs(window.Pages) do
 				p._frame.Visible = false
 				Tween(p._button, {
-					BackgroundColor3 = getColors().Surface2,
-					TextColor3 = getColors().TextSecondary,
+					BackgroundColor3 = window:getColors().Surface2,
+					TextColor3 = window:getColors().TextSecondary,
 				}, Config.Animation.Medium):Play()
 			end
 			pageFrame.Visible = true
 			Tween(tabBtn, {
-				BackgroundColor3 = getColors().Primary,
-				TextColor3 = getColors().Surface,
+				BackgroundColor3 = window:getColors().Primary,
+				TextColor3 = window:getColors().Surface,
 			}, Config.Animation.Medium):Play()
 			window.CurrentPage = page
 		end)
@@ -370,7 +370,7 @@ function MinimalGUI:CreateWindow(title, size)
 			if window.CurrentPage ~= page then
 				Tween(
 					tabBtn,
-					{ BackgroundColor3 = getColors().Surface3 },
+					{ BackgroundColor3 = window:getColors().Surface3 },
 					Config.Animation.Fast
 				):Play()
 			end
@@ -379,7 +379,7 @@ function MinimalGUI:CreateWindow(title, size)
 			if window.CurrentPage ~= page then
 				Tween(
 					tabBtn,
-					{ BackgroundColor3 = getColors().Surface2 },
+					{ BackgroundColor3 = window:getColors().Surface2 },
 					Config.Animation.Fast
 				):Play()
 			end
@@ -396,10 +396,10 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local btn = Instance.new('TextButton')
 			btn.Size = UDim2.new(1, 0, 1, 0)
-			btn.BackgroundColor3 = getColors().Primary
+			btn.BackgroundColor3 = window:getColors().Primary
 			btn.BorderSizePixel = 0
 			btn.Text = text
-			btn.TextColor3 = getColors().Surface
+			btn.TextColor3 = window:getColors().Surface
 			btn.TextSize = 14
 			btn.Font = Config.Fonts.Medium
 			btn.Parent = container
@@ -408,27 +408,27 @@ function MinimalGUI:CreateWindow(title, size)
 			btn.MouseEnter:Connect(function()
 				Tween(
 					btn,
-					{ BackgroundColor3 = getColors().PrimaryHover },
+					{ BackgroundColor3 = window:getColors().PrimaryHover },
 					Config.Animation.Fast
 				):Play()
 			end)
 			btn.MouseLeave:Connect(function()
 				Tween(
 					btn,
-					{ BackgroundColor3 = getColors().Primary },
+					{ BackgroundColor3 = window:getColors().Primary },
 					Config.Animation.Fast
 				):Play()
 			end)
 			btn.MouseButton1Click:Connect(function()
 				Tween(
 					btn,
-					{ BackgroundColor3 = getColors().PrimaryDim },
+					{ BackgroundColor3 = window:getColors().PrimaryDim },
 					Config.Animation.Fast
 				):Play()
 				task.wait(0.06)
 				Tween(
 					btn,
-					{ BackgroundColor3 = getColors().Primary },
+					{ BackgroundColor3 = window:getColors().Primary },
 					Config.Animation.Fast
 				):Play()
 				if callback then
@@ -445,18 +445,18 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local container = Instance.new('Frame')
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
-			container.BackgroundColor3 = getColors().Surface
+			container.BackgroundColor3 = window:getColors().Surface
 			container.BorderSizePixel = 0
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.lg)
-			Stroke(container, getColors().Border)
+			Stroke(container, window:getColors().Border)
 
 			local label = Instance.new('TextLabel')
 			label.Size = UDim2.new(1, -70, 1, 0)
 			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
 			label.BackgroundTransparency = 1
 			label.Text = text
-			label.TextColor3 = getColors().Text
+			label.TextColor3 = window:getColors().Text
 			label.TextSize = 14
 			label.Font = Config.Fonts.Regular
 			label.TextXAlignment = Enum.TextXAlignment.Left
@@ -465,8 +465,8 @@ function MinimalGUI:CreateWindow(title, size)
 			local toggle = Instance.new('TextButton')
 			toggle.Size = UDim2.new(0, 44, 0, 22)
 			toggle.Position = UDim2.new(1, -Config.Spacing.lg - 44, 0.5, -11)
-			toggle.BackgroundColor3 = value and getColors().Primary
-				or window:getColors().Surface3
+			toggle.BackgroundColor3 = value and window:getColors().Primary
+				or window:window:getColors().Surface3
 			toggle.BorderSizePixel = 0
 			toggle.Text = ''
 			toggle.Parent = container
@@ -476,7 +476,7 @@ function MinimalGUI:CreateWindow(title, size)
 			thumb.Size = UDim2.new(0, 18, 0, 18)
 			thumb.Position = value and UDim2.new(1, -20, 0.5, -9)
 				or UDim2.new(0, 2, 0.5, -9)
-			thumb.BackgroundColor3 = getColors().Surface
+			thumb.BackgroundColor3 = window:getColors().Surface
 			thumb.BorderSizePixel = 0
 			thumb.Parent = toggle
 			Corner(thumb, 9)
@@ -484,8 +484,8 @@ function MinimalGUI:CreateWindow(title, size)
 			toggle.MouseButton1Click:Connect(function()
 				value = not value
 				Tween(toggle, {
-					BackgroundColor3 = value and getColors().Primary
-						or getColors().Surface3,
+					BackgroundColor3 = value and window:getColors().Primary
+						or window:getColors().Surface3,
 				}, Config.Animation.Medium):Play()
 				Tween(thumb, {
 					Position = value and UDim2.new(1, -20, 0.5, -9)
@@ -508,11 +508,11 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local container = Instance.new('Frame')
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight + 20)
-			container.BackgroundColor3 = getColors().Surface
+			container.BackgroundColor3 = window:getColors().Surface
 			container.BorderSizePixel = 0
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.md)
-			Stroke(container, getColors().Border)
+			Stroke(container, window:getColors().Border)
 
 			local headerFrame = Instance.new('Frame')
 			headerFrame.Size = UDim2.new(1, 0, 0, 24)
@@ -525,7 +525,7 @@ function MinimalGUI:CreateWindow(title, size)
 			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
 			label.BackgroundTransparency = 1
 			label.Text = text
-			label.TextColor3 = getColors().Text
+			label.TextColor3 = window:getColors().Text
 			label.TextSize = 14
 			label.Font = Config.Fonts.Regular
 			label.TextXAlignment = Enum.TextXAlignment.Left
@@ -536,7 +536,7 @@ function MinimalGUI:CreateWindow(title, size)
 			valueLabel.Position = UDim2.new(1, -Config.Spacing.lg - 50, 0, 0)
 			valueLabel.BackgroundTransparency = 1
 			valueLabel.Text = tostring(value)
-			valueLabel.TextColor3 = getColors().Primary
+			valueLabel.TextColor3 = window:getColors().Primary
 			valueLabel.TextSize = 13
 			valueLabel.Font = Config.Fonts.Bold
 			valueLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -550,7 +550,7 @@ function MinimalGUI:CreateWindow(title, size)
 				1,
 				-Config.Spacing.lg - 4
 			)
-			track.BackgroundColor3 = window:getColors().Surface3
+			track.BackgroundColor3 = window:window:getColors().Surface3
 			track.BorderSizePixel = 0
 			track.Text = ''
 			track.Parent = container
@@ -558,7 +558,7 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local fill = Instance.new('Frame')
 			fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
-			fill.BackgroundColor3 = getColors().Primary
+			fill.BackgroundColor3 = window:getColors().Primary
 			fill.BorderSizePixel = 0
 			fill.Parent = track
 			Corner(fill, 4)
@@ -620,18 +620,18 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local container = Instance.new('Frame')
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
-			container.BackgroundColor3 = getColors().Surface
+			container.BackgroundColor3 = window:getColors().Surface
 			container.BorderSizePixel = 0
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.md)
-			Stroke(container, getColors().Border)
+			Stroke(container, window:getColors().Border)
 
 			local label = Instance.new('TextLabel')
 			label.Size = UDim2.new(0.4, 0, 1, 0)
 			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
 			label.BackgroundTransparency = 1
 			label.Text = text
-			label.TextColor3 = getColors().Text
+			label.TextColor3 = window:getColors().Text
 			label.TextSize = 14
 			label.Font = Config.Fonts.Regular
 			label.TextXAlignment = Enum.TextXAlignment.Left
@@ -640,20 +640,20 @@ function MinimalGUI:CreateWindow(title, size)
 			local dropdown = Instance.new('TextButton')
 			dropdown.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 28)
 			dropdown.Position = UDim2.new(0.4, 0, 0.5, -14)
-			dropdown.BackgroundColor3 = getColors().Surface2
+			dropdown.BackgroundColor3 = window:getColors().Surface2
 			dropdown.BorderSizePixel = 0
 			dropdown.Text = ''
 			dropdown.ClipsDescendants = true
 			dropdown.Parent = container
 			Corner(dropdown, Config.Radius.sm)
-			Stroke(container, getColors().BorderLight)
+			Stroke(container, window:getColors().BorderLight)
 
 			local valueText = Instance.new('TextLabel')
 			valueText.Size = UDim2.new(1, -28, 1, 0)
 			valueText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
 			valueText.BackgroundTransparency = 1
 			valueText.Text = value
-			valueText.TextColor3 = getColors().Text
+			valueText.TextColor3 = window:getColors().Text
 			valueText.TextSize = 13
 			valueText.Font = Config.Fonts.Regular
 			valueText.TextXAlignment = Enum.TextXAlignment.Left
@@ -664,7 +664,7 @@ function MinimalGUI:CreateWindow(title, size)
 			arrow.Position = UDim2.new(1, -20, 0, 0)
 			arrow.BackgroundTransparency = 1
 			arrow.Text = '▼'
-			arrow.TextColor3 = getColors().TextMuted
+			arrow.TextColor3 = window:getColors().TextMuted
 			arrow.TextSize = 9
 			arrow.Font = Config.Fonts.Regular
 			arrow.Parent = dropdown
@@ -672,13 +672,13 @@ function MinimalGUI:CreateWindow(title, size)
 			local optionsList = Instance.new('Frame')
 			optionsList.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 0)
 			optionsList.Position = UDim2.new(0.4, 0, 1, 2)
-			optionsList.BackgroundColor3 = getColors().Surface
+			optionsList.BackgroundColor3 = window:getColors().Surface
 			optionsList.BorderSizePixel = 0
 			optionsList.Visible = false
 			optionsList.ZIndex = 1000
 			optionsList.Parent = container
 			Corner(optionsList, Config.Radius.sm)
-			Stroke(container, getColors().BorderLight)
+			Stroke(container, window:getColors().BorderLight)
 
 			local optionsLayout = Instance.new('UIListLayout')
 			optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -709,7 +709,7 @@ function MinimalGUI:CreateWindow(title, size)
 			for i, option in ipairs(options) do
 				local optionBtn = Instance.new('TextButton')
 				optionBtn.Size = UDim2.new(1, 0, 0, 28)
-				optionBtn.BackgroundColor3 = getColors().Surface
+				optionBtn.BackgroundColor3 = window:getColors().Surface
 				optionBtn.BackgroundTransparency = 1
 				optionBtn.BorderSizePixel = 0
 				optionBtn.Text = ''
@@ -721,7 +721,7 @@ function MinimalGUI:CreateWindow(title, size)
 				optionText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
 				optionText.BackgroundTransparency = 1
 				optionText.Text = option
-				optionText.TextColor3 = getColors().Text
+				optionText.TextColor3 = window:getColors().Text
 				optionText.TextSize = 13
 				optionText.Font = Config.Fonts.Regular
 				optionText.TextXAlignment = Enum.TextXAlignment.Left
@@ -730,7 +730,7 @@ function MinimalGUI:CreateWindow(title, size)
 				optionBtn.MouseEnter:Connect(function()
 					Tween(optionBtn, {
 						BackgroundTransparency = 0,
-						BackgroundColor3 = getColors().Surface2,
+						BackgroundColor3 = window:getColors().Surface2,
 					}, Config.Animation.Fast):Play()
 				end)
 				optionBtn.MouseLeave:Connect(function()
@@ -761,7 +761,7 @@ function MinimalGUI:CreateWindow(title, size)
 		if not window.CurrentPage then
 			pageFrame.Visible = true
 			Tween(tabBtn, {
-				BackgroundColor3 = getColors().Primary,
+				BackgroundColor3 = window:getColors().Primary,
 				TextColor3 = Config.Colors.Surface,
 			}, Config.Animation.Fast):Play()
 			window.CurrentPage = page
