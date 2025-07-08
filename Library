@@ -340,6 +340,216 @@ function MinimalGUI:CreateWindow(title, size)
             return toggleFrame, function() return toggleValue end
         end
         
+        function page:CreateSlider(text, min, max, defaultValue, callback)
+            min = min or 0
+            max = max or 100
+            defaultValue = defaultValue or min
+            local sliderValue = defaultValue
+            
+            local sliderFrame = Instance.new("Frame")
+            sliderFrame.Name = text .. "Slider"
+            sliderFrame.Size = UDim2.new(1, 0, 0, 60)
+            sliderFrame.BackgroundColor3 = Config.Colors.Secondary
+            sliderFrame.BorderSizePixel = 0
+            sliderFrame.Parent = pageFrame
+            CreateCorner(sliderFrame, 8)
+            
+            local sliderLabel = Instance.new("TextLabel")
+            sliderLabel.Size = UDim2.new(1, -80, 0, 25)
+            sliderLabel.Position = UDim2.new(0, 15, 0, 5)
+            sliderLabel.BackgroundTransparency = 1
+            sliderLabel.Text = text
+            sliderLabel.TextColor3 = Config.Colors.Text
+            sliderLabel.TextScaled = true
+            sliderLabel.Font = Config.Fonts.Regular
+            sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+            sliderLabel.Parent = sliderFrame
+            
+            local sliderValueLabel = Instance.new("TextLabel")
+            sliderValueLabel.Size = UDim2.new(0, 60, 0, 25)
+            sliderValueLabel.Position = UDim2.new(1, -75, 0, 5)
+            sliderValueLabel.BackgroundTransparency = 1
+            sliderValueLabel.Text = tostring(sliderValue)
+            sliderValueLabel.TextColor3 = Config.Colors.Accent
+            sliderValueLabel.TextScaled = true
+            sliderValueLabel.Font = Config.Fonts.Bold
+            sliderValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+            sliderValueLabel.Parent = sliderFrame
+            
+            local sliderTrack = Instance.new("Frame")
+            sliderTrack.Size = UDim2.new(1, -30, 0, 4)
+            sliderTrack.Position = UDim2.new(0, 15, 1, -20)
+            sliderTrack.BackgroundColor3 = Config.Colors.Border
+            sliderTrack.BorderSizePixel = 0
+            sliderTrack.Parent = sliderFrame
+            CreateCorner(sliderTrack, 2)
+            
+            local sliderFill = Instance.new("Frame")
+            sliderFill.Size = UDim2.new((sliderValue - min) / (max - min), 0, 1, 0)
+            sliderFill.Position = UDim2.new(0, 0, 0, 0)
+            sliderFill.BackgroundColor3 = Config.Colors.Accent
+            sliderFill.BorderSizePixel = 0
+            sliderFill.Parent = sliderTrack
+            CreateCorner(sliderFill, 2)
+            
+            local sliderHandle = Instance.new("Frame")
+            sliderHandle.Size = UDim2.new(0, 16, 0, 16)
+            sliderHandle.Position = UDim2.new((sliderValue - min) / (max - min), -8, 0.5, -8)
+            sliderHandle.BackgroundColor3 = Config.Colors.Text
+            sliderHandle.BorderSizePixel = 0
+            sliderHandle.Parent = sliderTrack
+            CreateCorner(sliderHandle, 8)
+            
+            local dragging = false
+            
+            local function updateSlider(input)
+                local relativeX = math.clamp((input.Position.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
+                sliderValue = math.floor(min + (max - min) * relativeX)
+                sliderValueLabel.Text = tostring(sliderValue)
+                
+                CreateTween(sliderFill, {Size = UDim2.new(relativeX, 0, 1, 0)}, 0.1):Play()
+                CreateTween(sliderHandle, {Position = UDim2.new(relativeX, -8, 0.5, -8)}, 0.1):Play()
+                
+                if callback then callback(sliderValue) end
+            end
+            
+            sliderTrack.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = true
+                    updateSlider(input)
+                end
+            end)
+            
+            UserInputService.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+                    updateSlider(input)
+                end
+            end)
+            
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+            
+            table.insert(page.Elements, sliderFrame)
+            return sliderFrame, function() return sliderValue end
+        end
+        
+        function page:CreateDropdown(text, options, defaultValue, callback)
+            options = options or {}
+            defaultValue = defaultValue or (options[1] or "Select...")
+            local dropdownValue = defaultValue
+            local isOpen = false
+            
+            local dropdownFrame = Instance.new("Frame")
+            dropdownFrame.Name = text .. "Dropdown"
+            dropdownFrame.Size = UDim2.new(1, 0, 0, 40)
+            dropdownFrame.BackgroundColor3 = Config.Colors.Secondary
+            dropdownFrame.BorderSizePixel = 0
+            dropdownFrame.Parent = pageFrame
+            CreateCorner(dropdownFrame, 8)
+            
+            local dropdownLabel = Instance.new("TextLabel")
+            dropdownLabel.Size = UDim2.new(0.5, -10, 1, 0)
+            dropdownLabel.Position = UDim2.new(0, 15, 0, 0)
+            dropdownLabel.BackgroundTransparency = 1
+            dropdownLabel.Text = text
+            dropdownLabel.TextColor3 = Config.Colors.Text
+            dropdownLabel.TextScaled = true
+            dropdownLabel.Font = Config.Fonts.Regular
+            dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+            dropdownLabel.Parent = dropdownFrame
+            
+            local dropdownButton = Instance.new("TextButton")
+            dropdownButton.Size = UDim2.new(0.5, -15, 0, 30)
+            dropdownButton.Position = UDim2.new(0.5, 0, 0, 5)
+            dropdownButton.BackgroundColor3 = Config.Colors.Background
+            dropdownButton.BorderSizePixel = 0
+            dropdownButton.Text = dropdownValue
+            dropdownButton.TextColor3 = Config.Colors.Text
+            dropdownButton.TextScaled = true
+            dropdownButton.Font = Config.Fonts.Regular
+            dropdownButton.Parent = dropdownFrame
+            CreateCorner(dropdownButton, 6)
+            CreateStroke(dropdownButton, Config.Colors.Border, 1)
+            
+            local dropdownArrow = Instance.new("TextLabel")
+            dropdownArrow.Size = UDim2.new(0, 20, 1, 0)
+            dropdownArrow.Position = UDim2.new(1, -25, 0, 0)
+            dropdownArrow.BackgroundTransparency = 1
+            dropdownArrow.Text = "▼"
+            dropdownArrow.TextColor3 = Config.Colors.TextSecondary
+            dropdownArrow.TextScaled = true
+            dropdownArrow.Font = Config.Fonts.Regular
+            dropdownArrow.Parent = dropdownButton
+            
+            local dropdownList = Instance.new("Frame")
+            dropdownList.Name = "DropdownList"
+            dropdownList.Size = UDim2.new(0.5, -15, 0, 0)
+            dropdownList.Position = UDim2.new(0.5, 0, 1, 5)
+            dropdownList.BackgroundColor3 = Config.Colors.Background
+            dropdownList.BorderSizePixel = 0
+            dropdownList.Visible = false
+            dropdownList.ZIndex = 10
+            dropdownList.Parent = dropdownFrame
+            CreateCorner(dropdownList, 6)
+            CreateStroke(dropdownList, Config.Colors.Border, 1)
+            
+            local dropdownListLayout = Instance.new("UIListLayout")
+            dropdownListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            dropdownListLayout.Parent = dropdownList
+            
+            local function toggleDropdown()
+                isOpen = not isOpen
+                local targetSize = isOpen and UDim2.new(0.5, -15, 0, #options * 30) or UDim2.new(0.5, -15, 0, 0)
+                
+                dropdownList.Visible = true
+                CreateTween(dropdownList, {Size = targetSize}, 0.2):Play()
+                CreateTween(dropdownArrow, {Rotation = isOpen and 180 or 0}, 0.2):Play()
+                
+                if not isOpen then
+                    wait(0.2)
+                    dropdownList.Visible = false
+                end
+            end
+            
+            dropdownButton.MouseButton1Click:Connect(toggleDropdown)
+            
+            -- Create option buttons
+            for i, option in ipairs(options) do
+                local optionButton = Instance.new("TextButton")
+                optionButton.Size = UDim2.new(1, 0, 0, 30)
+                optionButton.BackgroundColor3 = Config.Colors.Background
+                optionButton.BackgroundTransparency = 1
+                optionButton.BorderSizePixel = 0
+                optionButton.Text = option
+                optionButton.TextColor3 = Config.Colors.Text
+                optionButton.TextScaled = true
+                optionButton.Font = Config.Fonts.Regular
+                optionButton.LayoutOrder = i
+                optionButton.Parent = dropdownList
+                
+                optionButton.MouseEnter:Connect(function()
+                    CreateTween(optionButton, {BackgroundTransparency = 0.5, BackgroundColor3 = Config.Colors.Accent}):Play()
+                end)
+                
+                optionButton.MouseLeave:Connect(function()
+                    CreateTween(optionButton, {BackgroundTransparency = 1}):Play()
+                end)
+                
+                optionButton.MouseButton1Click:Connect(function()
+                    dropdownValue = option
+                    dropdownButton.Text = option
+                    toggleDropdown()
+                    if callback then callback(option) end
+                end)
+            end
+            
+            table.insert(page.Elements, dropdownFrame)
+            return dropdownFrame, function() return dropdownValue end
+        end
+        
         window.Pages[name] = page
         
         -- Auto-select first page
