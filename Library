@@ -466,7 +466,7 @@ function MinimalGUI:CreateWindow(title, size)
 			toggle.Size = UDim2.new(0, 44, 0, 22)
 			toggle.Position = UDim2.new(1, -Config.Spacing.lg - 44, 0.5, -11)
 			toggle.BackgroundColor3 = value and window:getColors().Primary
-				or window:window:getColors().Surface3
+				or window:getColors().Surface3
 			toggle.BorderSizePixel = 0
 			toggle.Text = ''
 			toggle.Parent = container
@@ -550,7 +550,7 @@ function MinimalGUI:CreateWindow(title, size)
 				1,
 				-Config.Spacing.lg - 4
 			)
-			track.BackgroundColor3 = window:window:getColors().Surface3
+			track.BackgroundColor3 = window:getColors().Surface3
 			track.BorderSizePixel = 0
 			track.Text = ''
 			track.Parent = container
