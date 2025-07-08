@@ -9,6 +9,7 @@ function Library:CreateWindow(titleText)
 	local title = Instance.new("TextLabel")
 	local close = Instance.new("TextButton")
 	local pages = Instance.new("Frame")
+	local uilist = Instance.new("UIListLayout")
 
 	gui.Name = "LibraryUI"
 	gui.Parent = game.CoreGui
@@ -18,30 +19,31 @@ function Library:CreateWindow(titleText)
 	main.Parent = gui
 	main.Size = UDim2.new(0, 300, 0, 400)
 	main.Position = UDim2.new(0.5, -150, 0.5, -200)
-	main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 	main.BorderSizePixel = 0
+	main.Active = true
+	main.Draggable = true
 
 	title.Name = "Title"
 	title.Parent = main
 	title.Size = UDim2.new(1, -40, 0, 40)
-	title.Position = UDim2.new(0, 0, 0, 0)
+	title.Position = UDim2.new(0, 10, 0, 0)
 	title.BackgroundTransparency = 1
 	title.Text = titleText or "Library"
 	title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	title.Font = Enum.Font.SourceSansSemibold
+	title.Font = Enum.Font.GothamBold
 	title.TextSize = 20
 	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.PaddingLeft = UDim.new(0, 10)
 
 	close.Name = "Close"
 	close.Parent = main
-	close.Size = UDim2.new(0, 40, 0, 40)
-	close.Position = UDim2.new(1, -40, 0, 0)
-	close.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	close.Size = UDim2.new(0, 30, 0, 30)
+	close.Position = UDim2.new(1, -35, 0, 5)
+	close.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 	close.Text = "X"
 	close.TextColor3 = Color3.fromRGB(255, 255, 255)
-	close.Font = Enum.Font.SourceSans
-	close.TextSize = 20
+	close.Font = Enum.Font.Gotham
+	close.TextSize = 16
 	close.BorderSizePixel = 0
 
 	pages.Name = "Pages"
@@ -49,6 +51,11 @@ function Library:CreateWindow(titleText)
 	pages.Size = UDim2.new(1, -20, 1, -60)
 	pages.Position = UDim2.new(0, 10, 0, 50)
 	pages.BackgroundTransparency = 1
+	pages.ClipsDescendants = true
+
+	uilist.Parent = pages
+	uilist.Padding = UDim.new(0, 5)
+	uilist.SortOrder = Enum.SortOrder.LayoutOrder
 
 	close.MouseButton1Click:Connect(function()
 		gui:Destroy()
@@ -69,6 +76,11 @@ function Library:CreatePage(name)
 	page.BackgroundTransparency = 1
 	page.Visible = false
 	page.Parent = self.Pages
+
+	local layout = Instance.new("UIListLayout")
+	layout.Padding = UDim.new(0, 5)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = page
 
 	self.PagesList[name] = page
 	if not self.CurrentPage then
@@ -92,11 +104,11 @@ end
 function Library:CreateButton(page, text, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
-	button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 	button.Text = text
 	button.TextColor3 = Color3.fromRGB(255, 255, 255)
-	button.Font = Enum.Font.SourceSans
-	button.TextSize = 18
+	button.Font = Enum.Font.Gotham
+	button.TextSize = 16
 	button.BorderSizePixel = 0
 	button.Parent = page
 
@@ -112,11 +124,11 @@ function Library:CreateToggle(page, text, callback)
 	local state = false
 
 	toggle.Size = UDim2.new(1, 0, 0, 40)
-	toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 	toggle.Text = "[ OFF ] " .. text
 	toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-	toggle.Font = Enum.Font.SourceSans
-	toggle.TextSize = 18
+	toggle.Font = Enum.Font.Gotham
+	toggle.TextSize = 16
 	toggle.BorderSizePixel = 0
 	toggle.Parent = page
 
