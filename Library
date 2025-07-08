@@ -54,8 +54,8 @@ local Config = {
 		RowHeight = 48,
 		RowSpacing = 12,
 		EdgePadding = 20,
-		MaxWidth = 490,
-		MaxHeight = 420,
+		MaxWidth = 520,
+		MaxHeight = 360,
 	},
 }
 
