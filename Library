@@ -24,19 +24,18 @@ local Config = {
 		Glass = Color3.fromRGB(255, 255, 255)
 	},
 	Fonts = {
-		Regular = Enum.Font.SourceSans,
-		Medium = Enum.Font.SourceSansSemibold,
-		Bold = Enum.Font.SourceSansBold,
+		Regular = Enum.Font.Gotham,
+		Medium = Enum.Font.GothamMedium,
+		Bold = Enum.Font.GothamBold,
 	},
-	Spacing = { xs = 2, sm = 4, md = 6, lg = 8, xl = 12 },
-	Radius = { sm = 4, md = 6, lg = 8 },
-	Animation = { Fast = 0.1, Medium = 0.15, Slow = 0.2 },
+	Spacing = { xs = 4, sm = 8, md = 12, lg = 16, xl = 24 },
+	Radius = { sm = 8, md = 12, lg = 16 },
+	Animation = { Fast = 0.15, Medium = 0.25, Slow = 0.4 },
 	Layout = {
-		RowHeight = 32,
-		RowSpacing = 6,
-		EdgePadding = 8,
-		MaxWidth = 650,
-		ColumnSpacing = 12
+		RowHeight = 45,
+		RowSpacing = 10,
+		EdgePadding = 14,
+		MaxWidth = 425
 	}
 }
 
@@ -61,11 +60,22 @@ local function Stroke(parent, color, thickness)
 	return stroke
 end
 
+local function Glass(parent, transparency)
+	local glass = Instance.new('Frame')
+	glass.Size = UDim2.new(1, 0, 1, 0)
+	glass.BackgroundColor3 = Config.Colors.Glass
+	glass.BackgroundTransparency = transparency or 0.95
+	glass.BorderSizePixel = 0
+	glass.Parent = parent
+	Corner(glass, Config.Radius.md)
+	return glass
+end
+
 function MinimalGUI:CreateWindow(title, size)
 	title = title or 'MinimalGUI'
-	size = size or UDim2.new(0, Config.Layout.MaxWidth, 0, 320)
+	size = size or UDim2.new(0, Config.Layout.MaxWidth, 0, 480)
 
-	local window = { Pages = {}, CurrentPage = nil, _connections = {}, _columnTracker = {} }
+	local window = { Pages = {}, CurrentPage = nil, _connections = {} }
 
 	local gui = Instance.new('ScreenGui')
 	gui.Name = 'MinimalGUI'
@@ -73,45 +83,69 @@ function MinimalGUI:CreateWindow(title, size)
 	gui.ResetOnSpawn = false
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-	-- Main window frame (NO backdrop)
+	local backdrop = Instance.new('Frame')
+	backdrop.Size = UDim2.new(1, 0, 1, 0)
+	backdrop.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	backdrop.BackgroundTransparency = 0.3
+	backdrop.BorderSizePixel = 0
+	backdrop.Parent = gui
+
 	local main = Instance.new('Frame')
 	main.Size = size
 	main.Position = UDim2.new(0.5, 0, 0.5, 0)
 	main.AnchorPoint = Vector2.new(0.5, 0.5)
 	main.BackgroundColor3 = Config.Colors.Background
-	main.BorderSizePixel = 1
-	main.BorderColor3 = Config.Colors.BorderLight
+	main.BorderSizePixel = 0
 	main.Parent = gui
+	Corner(main, Config.Radius.lg)
+	Stroke(main, Config.Colors.BorderLight, 1)
 
-	-- Thin header
+	local shadow = Instance.new('Frame')
+	shadow.Size = UDim2.new(1, 20, 1, 20)
+	shadow.Position = UDim2.new(0, -10, 0, -10)
+	shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	shadow.BackgroundTransparency = 0.8
+	shadow.BorderSizePixel = 0
+	shadow.ZIndex = main.ZIndex - 1
+	shadow.Parent = main
+	Corner(shadow, Config.Radius.lg + 4)
+
 	local header = Instance.new('Frame')
-	header.Size = UDim2.new(1, 0, 0, 28)
+	header.Size = UDim2.new(1, 0, 0, 50)
 	header.BackgroundColor3 = Config.Colors.Surface
 	header.BorderSizePixel = 0
 	header.Parent = main
+	Corner(header, Config.Radius.lg)
+
+	local headerMask = Instance.new('Frame')
+	headerMask.Size = UDim2.new(1, 0, 0, 20)
+	headerMask.Position = UDim2.new(0, 0, 1, -20)
+	headerMask.BackgroundColor3 = Config.Colors.Surface
+	headerMask.BorderSizePixel = 0
+	headerMask.Parent = header
 
 	local titleText = Instance.new('TextLabel')
-	titleText.Size = UDim2.new(1, -30, 1, 0)
+	titleText.Size = UDim2.new(1, -100, 1, 0)
 	titleText.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 0)
 	titleText.BackgroundTransparency = 1
 	titleText.Text = title
 	titleText.TextColor3 = Config.Colors.Text
-	titleText.TextSize = 14
-	titleText.Font = Config.Fonts.Medium
+	titleText.TextSize = 16
+	titleText.Font = Config.Fonts.Bold
 	titleText.TextXAlignment = Enum.TextXAlignment.Left
 	titleText.Parent = header
 
 	local closeBtn = Instance.new('TextButton')
-	closeBtn.Size = UDim2.new(0, 20, 0, 20)
-	closeBtn.Position = UDim2.new(1, -24, 0.5, -10)
+	closeBtn.Size = UDim2.new(0, 32, 0, 32)
+	closeBtn.Position = UDim2.new(1, -44, 0.5, -16)
 	closeBtn.BackgroundColor3 = Config.Colors.Surface2
 	closeBtn.BorderSizePixel = 0
 	closeBtn.Text = '×'
 	closeBtn.TextColor3 = Config.Colors.TextMuted
-	closeBtn.TextSize = 14
+	closeBtn.TextSize = 18
 	closeBtn.Font = Config.Fonts.Regular
 	closeBtn.Parent = header
-	Corner(closeBtn, 2)
+	Corner(closeBtn, Config.Radius.sm)
 
 	closeBtn.MouseEnter:Connect(function()
 		Tween(closeBtn, { BackgroundColor3 = Config.Colors.Danger, TextColor3 = Config.Colors.Text }, Config.Animation.Fast):Play()
@@ -120,27 +154,28 @@ function MinimalGUI:CreateWindow(title, size)
 		Tween(closeBtn, { BackgroundColor3 = Config.Colors.Surface2, TextColor3 = Config.Colors.TextMuted }, Config.Animation.Fast):Play()
 	end)
 	closeBtn.MouseButton1Click:Connect(function()
+		Tween(backdrop, { BackgroundTransparency = 1 }, Config.Animation.Medium):Play()
+		Tween(main, { Size = UDim2.new(0, 0, 0, 0) }, Config.Animation.Medium, Enum.EasingStyle.Back):Play()
+		task.wait(Config.Animation.Medium)
 		gui:Destroy()
 	end)
 
-	-- Thin tab container
+	-- Enhanced Tab Container with proper spacing
 	local tabContainer = Instance.new('Frame')
-	tabContainer.Size = UDim2.new(1, 0, 0, 26)
-	tabContainer.Position = UDim2.new(0, 0, 0, 28)
-	tabContainer.BackgroundColor3 = Config.Colors.Surface
-	tabContainer.BorderSizePixel = 0
+	tabContainer.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 0, 35)
+	tabContainer.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 60)
+	tabContainer.BackgroundTransparency = 1
 	tabContainer.Parent = main
 
 	local tabLayout = Instance.new('UIListLayout')
 	tabLayout.FillDirection = Enum.FillDirection.Horizontal
 	tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	tabLayout.Padding = UDim.new(0, 1)
+	tabLayout.Padding = UDim.new(0, Config.Spacing.sm)
 	tabLayout.Parent = tabContainer
 
-	-- Content area
 	local content = Instance.new('Frame')
-	content.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 1, -62)
-	content.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 54)
+	content.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 1, -110)
+	content.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 105)
 	content.BackgroundTransparency = 1
 	content.Parent = main
 
@@ -171,29 +206,29 @@ function MinimalGUI:CreateWindow(title, size)
 	end))
 
 	function window:CreatePage(name)
-		local page = { Name = name, Elements = {}, _frame = nil, _button = nil, _currentRow = nil, _columnCount = 0 }
-		window._columnTracker[name] = { currentRow = nil, columnCount = 0 }
+		local page = { Name = name, Elements = {}, _frame = nil, _button = nil }
 
-		-- Compact tab button
+		-- Enhanced tab button with better sizing
 		local tabBtn = Instance.new('TextButton')
-		tabBtn.Size = UDim2.new(0, 70, 1, 0)
+		tabBtn.Size = UDim2.new(0, 85, 1, 0)
 		tabBtn.BackgroundColor3 = Config.Colors.Surface2
 		tabBtn.BorderSizePixel = 0
 		tabBtn.Text = name
 		tabBtn.TextColor3 = Config.Colors.TextSecondary
-		tabBtn.TextSize = 12
-		tabBtn.Font = Config.Fonts.Regular
+		tabBtn.TextSize = 13
+		tabBtn.Font = Config.Fonts.Medium
 		tabBtn.LayoutOrder = #window.Pages + 1
 		tabBtn.Parent = tabContainer
+		Corner(tabBtn, Config.Radius.sm)
 
-		-- Page frame with scrolling
+		-- Enhanced page frame with better scrolling
 		local pageFrame = Instance.new('ScrollingFrame')
 		pageFrame.Size = UDim2.new(1, 0, 1, 0)
 		pageFrame.BackgroundTransparency = 1
 		pageFrame.BorderSizePixel = 0
-		pageFrame.ScrollBarThickness = 2
+		pageFrame.ScrollBarThickness = 3
 		pageFrame.ScrollBarImageColor3 = Config.Colors.Primary
-		pageFrame.ScrollBarImageTransparency = 0.5
+		pageFrame.ScrollBarImageTransparency = 0.3
 		pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 		pageFrame.Visible = false
 		pageFrame.Parent = content
@@ -205,27 +240,29 @@ function MinimalGUI:CreateWindow(title, size)
 
 		local pagePadding = Instance.new('UIPadding')
 		pagePadding.PaddingTop = UDim.new(0, Config.Spacing.sm)
-		pagePadding.PaddingBottom = UDim.new(0, Config.Spacing.sm)
+		pagePadding.PaddingBottom = UDim.new(0, Config.Spacing.xl)
 		pagePadding.Parent = pageFrame
 
 		pageLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
-			pageFrame.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + Config.Spacing.lg)
+			pageFrame.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + Config.Spacing.xl * 2)
 		end)
 
-		-- Tab switching
+		-- Tab switching with instant content changes
 		tabBtn.MouseButton1Click:Connect(function()
 			for _, p in pairs(window.Pages) do
 				p._frame.Visible = false
 				Tween(p._button, { 
 					BackgroundColor3 = Config.Colors.Surface2, 
-					TextColor3 = Config.Colors.TextSecondary
+					TextColor3 = Config.Colors.TextSecondary,
+					Size = UDim2.new(0, 85, 1, 0)
 				}, Config.Animation.Fast):Play()
 			end
 			pageFrame.Visible = true
 			Tween(tabBtn, { 
 				BackgroundColor3 = Config.Colors.Primary, 
-				TextColor3 = Config.Colors.Text
-			}, Config.Animation.Fast):Play()
+				TextColor3 = Config.Colors.Text,
+				Size = UDim2.new(0, 95, 1, 0)
+			}, Config.Animation.Medium):Play()
 			window.CurrentPage = page
 		end)
 
@@ -243,25 +280,6 @@ function MinimalGUI:CreateWindow(title, size)
 		page._button = tabBtn
 		page._frame = pageFrame
 
-		-- Helper function for 2-column layout
-		local function getOrCreateRow()
-			local tracker = window._columnTracker[name]
-			if not tracker.currentRow or tracker.columnCount >= 2 then
-				-- Create new row
-				tracker.currentRow = Instance.new('Frame')
-				tracker.currentRow.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
-				tracker.currentRow.BackgroundTransparency = 1
-				tracker.currentRow.Parent = pageFrame
-				tracker.columnCount = 0
-			end
-			return tracker.currentRow
-		end
-
-		local function incrementColumn()
-			local tracker = window._columnTracker[name]
-			tracker.columnCount = tracker.columnCount + 1
-		end
-
 		function page:CreateButton(text, callback)
 			local container = Instance.new('Frame')
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
@@ -274,10 +292,10 @@ function MinimalGUI:CreateWindow(title, size)
 			btn.BorderSizePixel = 0
 			btn.Text = text
 			btn.TextColor3 = Config.Colors.Text
-			btn.TextSize = 12
+			btn.TextSize = 14
 			btn.Font = Config.Fonts.Medium
 			btn.Parent = container
-			Corner(btn, Config.Radius.sm)
+			Corner(btn, Config.Radius.md)
 
 			btn.MouseEnter:Connect(function()
 				Tween(btn, { BackgroundColor3 = Config.Colors.PrimaryHover }, Config.Animation.Fast):Play()
@@ -296,112 +314,120 @@ function MinimalGUI:CreateWindow(title, size)
 			return container
 		end
 
-		-- 2-column Toggle layout
+		-- Enhanced Toggle with proper horizontal layout
 		function page:CreateToggle(text, defaultValue, callback)
 			local value = defaultValue or false
-			local row = getOrCreateRow()
-			local tracker = window._columnTracker[name]
 
 			local container = Instance.new('Frame')
-			container.Size = UDim2.new(0.5, -Config.Layout.ColumnSpacing/2, 1, 0)
-			container.Position = UDim2.new(tracker.columnCount * 0.5, tracker.columnCount * Config.Layout.ColumnSpacing/2, 0, 0)
+			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
 			container.BackgroundColor3 = Config.Colors.Surface
 			container.BorderSizePixel = 0
-			container.Parent = row
-			Corner(container, Config.Radius.sm)
+			container.Parent = pageFrame
+			Corner(container, Config.Radius.md)
 
 			local label = Instance.new('TextLabel')
-			label.Size = UDim2.new(1, -44, 1, 0)
+			label.Size = UDim2.new(1, -70, 1, 0)
 			label.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 0)
 			label.BackgroundTransparency = 1
 			label.Text = text
 			label.TextColor3 = Config.Colors.Text
-			label.TextSize = 11
-			label.Font = Config.Fonts.Regular
+			label.TextSize = 14
+			label.Font = Config.Fonts.Medium
 			label.TextXAlignment = Enum.TextXAlignment.Left
 			label.Parent = container
 
 			local toggle = Instance.new('TextButton')
-			toggle.Size = UDim2.new(0, 36, 0, 18)
-			toggle.Position = UDim2.new(1, -40, 0.5, -9)
+			toggle.Size = UDim2.new(0, 50, 0, 24)
+			toggle.Position = UDim2.new(1, -Config.Layout.EdgePadding - 50, 0.5, -12)
 			toggle.BackgroundColor3 = value and Config.Colors.Primary or Config.Colors.Surface2
 			toggle.BorderSizePixel = 0
 			toggle.Text = ''
 			toggle.Parent = container
-			Corner(toggle, 9)
+			Corner(toggle, 12)
 
 			local thumb = Instance.new('Frame')
-			thumb.Size = UDim2.new(0, 14, 0, 14)
-			thumb.Position = value and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
+			thumb.Size = UDim2.new(0, 20, 0, 20)
+			thumb.Position = value and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
 			thumb.BackgroundColor3 = Config.Colors.Text
 			thumb.BorderSizePixel = 0
 			thumb.Parent = toggle
-			Corner(thumb, 7)
+			Corner(thumb, 10)
 
 			toggle.MouseButton1Click:Connect(function()
 				value = not value
 				Tween(toggle, { BackgroundColor3 = value and Config.Colors.Primary or Config.Colors.Surface2 }, Config.Animation.Medium):Play()
-				Tween(thumb, { Position = value and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7) }, Config.Animation.Medium):Play()
+				Tween(thumb, { Position = value and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10) }, Config.Animation.Medium):Play()
 				if callback then callback(value) end
 			end)
 
-			incrementColumn()
 			table.insert(page.Elements, container)
 			return container, function() return value end
 		end
 
-		-- 2-column Slider layout
+		-- Enhanced Slider with label/value row + slider below
 		function page:CreateSlider(text, min, max, defaultValue, callback)
 			min, max = min or 0, max or 100
 			local value = defaultValue or min
-			local row = getOrCreateRow()
-			local tracker = window._columnTracker[name]
 
 			local container = Instance.new('Frame')
-			container.Size = UDim2.new(0.5, -Config.Layout.ColumnSpacing/2, 1, 0)
-			container.Position = UDim2.new(tracker.columnCount * 0.5, tracker.columnCount * Config.Layout.ColumnSpacing/2, 0, 0)
+			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight + 25)
 			container.BackgroundColor3 = Config.Colors.Surface
 			container.BorderSizePixel = 0
-			container.Parent = row
-			Corner(container, Config.Radius.sm)
+			container.Parent = pageFrame
+			Corner(container, Config.Radius.md)
+
+			-- Label and value on same row
+			local labelValueRow = Instance.new('Frame')
+			labelValueRow.Size = UDim2.new(1, 0, 0, 30)
+			labelValueRow.Position = UDim2.new(0, 0, 0, Config.Spacing.sm)
+			labelValueRow.BackgroundTransparency = 1
+			labelValueRow.Parent = container
 
 			local label = Instance.new('TextLabel')
-			label.Size = UDim2.new(0.6, 0, 0.5, 0)
-			label.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 2)
+			label.Size = UDim2.new(1, -80, 1, 0)
+			label.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 0)
 			label.BackgroundTransparency = 1
 			label.Text = text
 			label.TextColor3 = Config.Colors.Text
-			label.TextSize = 11
-			label.Font = Config.Fonts.Regular
+			label.TextSize = 14
+			label.Font = Config.Fonts.Medium
 			label.TextXAlignment = Enum.TextXAlignment.Left
-			label.Parent = container
+			label.Parent = labelValueRow
+
+			-- Value in a capsule container
+			local valueCapsule = Instance.new('Frame')
+			valueCapsule.Size = UDim2.new(0, 55, 0, 22)
+			valueCapsule.Position = UDim2.new(1, -Config.Layout.EdgePadding - 55, 0.5, -11)
+			valueCapsule.BackgroundColor3 = Config.Colors.Primary
+			valueCapsule.BorderSizePixel = 0
+			valueCapsule.Parent = labelValueRow
+			Corner(valueCapsule, 11)
 
 			local valueLabel = Instance.new('TextLabel')
-			valueLabel.Size = UDim2.new(0.4, -Config.Layout.EdgePadding, 0.5, 0)
-			valueLabel.Position = UDim2.new(0.6, 0, 0, 2)
+			valueLabel.Size = UDim2.new(1, 0, 1, 0)
 			valueLabel.BackgroundTransparency = 1
 			valueLabel.Text = tostring(value)
-			valueLabel.TextColor3 = Config.Colors.TextSecondary
-			valueLabel.TextSize = 11
-			valueLabel.Font = Config.Fonts.Regular
-			valueLabel.TextXAlignment = Enum.TextXAlignment.Right
-			valueLabel.Parent = container
+			valueLabel.TextColor3 = Config.Colors.Text
+			valueLabel.TextSize = 12
+			valueLabel.Font = Config.Fonts.Bold
+			valueLabel.Parent = valueCapsule
 
+			-- Slider below the label/value row
 			local track = Instance.new('TextButton')
-			track.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 0, 8)
-			track.Position = UDim2.new(0, Config.Layout.EdgePadding, 0.5, 2)
+			track.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 0, 16)
+			track.Position = UDim2.new(0, Config.Layout.EdgePadding, 1, -Config.Spacing.lg - 8)
 			track.BackgroundColor3 = Config.Colors.Surface2
 			track.BorderSizePixel = 0
 			track.Text = ''
 			track.Parent = container
-			Corner(track, 4)
+			Corner(track, 8)
 
 			local fill = Instance.new('Frame')
 			fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
 			fill.BackgroundColor3 = Config.Colors.Primary
 			fill.BorderSizePixel = 0
 			fill.Parent = track
-			Corner(fill, 4)
+			Corner(fill, 8)
 
 			local dragging = false
 
@@ -433,47 +459,42 @@ function MinimalGUI:CreateWindow(title, size)
 				end
 			end)
 
-			incrementColumn()
 			table.insert(page.Elements, container)
 			return container, function() return value end
 		end
 
-		-- Full-width Dropdown (takes entire row)
+		-- Enhanced Dropdown with proper left-right layout
 		function page:CreateDropdown(text, options, defaultValue, callback)
 			options = options or {}
 			local value = defaultValue or (options[1] or 'Select...')
 			local isOpen = false
-
-			-- Reset column tracker for full-width element
-			window._columnTracker[name].currentRow = nil
-			window._columnTracker[name].columnCount = 0
 
 			local container = Instance.new('Frame')
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
 			container.BackgroundColor3 = Config.Colors.Surface
 			container.BorderSizePixel = 0
 			container.Parent = pageFrame
-			Corner(container, Config.Radius.sm)
+			Corner(container, Config.Radius.md)
 
 			local label = Instance.new('TextLabel')
-			label.Size = UDim2.new(0.3, 0, 1, 0)
+			label.Size = UDim2.new(0.45, 0, 1, 0)
 			label.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 0)
 			label.BackgroundTransparency = 1
 			label.Text = text
 			label.TextColor3 = Config.Colors.Text
-			label.TextSize = 12
+			label.TextSize = 14
 			label.Font = Config.Fonts.Medium
 			label.TextXAlignment = Enum.TextXAlignment.Left
 			label.Parent = container
 
 			local dropdown = Instance.new('TextButton')
-			dropdown.Size = UDim2.new(0.7, -Config.Layout.EdgePadding * 2, 0, 24)
-			dropdown.Position = UDim2.new(0.3, Config.Layout.EdgePadding, 0.5, -12)
+			dropdown.Size = UDim2.new(0.55, -Config.Layout.EdgePadding, 0, 30)
+			dropdown.Position = UDim2.new(0.45, 0, 0.5, -15)
 			dropdown.BackgroundColor3 = Config.Colors.Background
 			dropdown.BorderSizePixel = 0
 			dropdown.Text = '  ' .. value
 			dropdown.TextColor3 = Config.Colors.Text
-			dropdown.TextSize = 11
+			dropdown.TextSize = 13
 			dropdown.Font = Config.Fonts.Regular
 			dropdown.TextXAlignment = Enum.TextXAlignment.Left
 			dropdown.ClipsDescendants = true
@@ -482,18 +503,18 @@ function MinimalGUI:CreateWindow(title, size)
 			Stroke(dropdown, Config.Colors.BorderLight)
 
 			local arrow = Instance.new('TextLabel')
-			arrow.Size = UDim2.new(0, 20, 1, 0)
-			arrow.Position = UDim2.new(1, -20, 0, 0)
+			arrow.Size = UDim2.new(0, 25, 1, 0)
+			arrow.Position = UDim2.new(1, -25, 0, 0)
 			arrow.BackgroundTransparency = 1
 			arrow.Text = '▼'
 			arrow.TextColor3 = Config.Colors.TextMuted
-			arrow.TextSize = 8
+			arrow.TextSize = 10
 			arrow.Font = Config.Fonts.Regular
 			arrow.Parent = dropdown
 
 			local optionsList = Instance.new('Frame')
-			optionsList.Size = UDim2.new(0.7, -Config.Layout.EdgePadding * 2, 0, 0)
-			optionsList.Position = UDim2.new(0.3, Config.Layout.EdgePadding, 1, 2)
+			optionsList.Size = UDim2.new(0.55, -Config.Layout.EdgePadding, 0, 0)
+			optionsList.Position = UDim2.new(0.45, 0, 1, 4)
 			optionsList.BackgroundColor3 = Config.Colors.Background
 			optionsList.BorderSizePixel = 0
 			optionsList.Visible = false
@@ -508,10 +529,10 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local function toggleDropdown()
 				isOpen = not isOpen
-				local targetHeight = isOpen and (#options * 24) or 0
+				local targetHeight = isOpen and (#options * 30) or 0
 
 				optionsList.Visible = true
-				Tween(optionsList, { Size = UDim2.new(0.7, -Config.Layout.EdgePadding * 2, 0, targetHeight) }, Config.Animation.Medium):Play()
+				Tween(optionsList, { Size = UDim2.new(0.55, -Config.Layout.EdgePadding, 0, targetHeight) }, Config.Animation.Medium):Play()
 				Tween(arrow, { Rotation = isOpen and 180 or 0 }, Config.Animation.Medium):Play()
 
 				if not isOpen then
@@ -524,13 +545,13 @@ function MinimalGUI:CreateWindow(title, size)
 
 			for i, option in ipairs(options) do
 				local optionBtn = Instance.new('TextButton')
-				optionBtn.Size = UDim2.new(1, 0, 0, 24)
+				optionBtn.Size = UDim2.new(1, 0, 0, 30)
 				optionBtn.BackgroundColor3 = Config.Colors.Background
 				optionBtn.BackgroundTransparency = 1
 				optionBtn.BorderSizePixel = 0
 				optionBtn.Text = '  ' .. option
 				optionBtn.TextColor3 = Config.Colors.Text
-				optionBtn.TextSize = 11
+				optionBtn.TextSize = 13
 				optionBtn.Font = Config.Fonts.Regular
 				optionBtn.TextXAlignment = Enum.TextXAlignment.Left
 				optionBtn.LayoutOrder = i
@@ -560,7 +581,8 @@ function MinimalGUI:CreateWindow(title, size)
 			pageFrame.Visible = true
 			Tween(tabBtn, { 
 				BackgroundColor3 = Config.Colors.Primary, 
-				TextColor3 = Config.Colors.Text
+				TextColor3 = Config.Colors.Text,
+				Size = UDim2.new(0, 95, 1, 0)
 			}, Config.Animation.Fast):Play()
 			window.CurrentPage = page
 		end
@@ -574,6 +596,12 @@ function MinimalGUI:CreateWindow(title, size)
 		end
 		gui:Destroy()
 	end
+
+	-- Smooth entrance animation
+	backdrop.BackgroundTransparency = 1
+	main.Size = UDim2.new(0, 0, 0, 0)
+	Tween(backdrop, { BackgroundTransparency = 0.3 }, Config.Animation.Slow):Play()
+	Tween(main, { Size = size }, Config.Animation.Slow, Enum.EasingStyle.Back):Play()
 
 	return window
 end
