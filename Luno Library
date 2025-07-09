@@ -330,7 +330,6 @@ function MinimalGUI:CreateWindow(title, size)
 	gui.Name = 'MinimalGUI'
 	gui.Parent = CoreGui
 	gui.ResetOnSpawn = false
-	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local main = Instance.new('Frame')
 	main.Size = size
@@ -556,7 +555,6 @@ function MinimalGUI:CreateWindow(title, size)
 		pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 		pageFrame.Visible = false
 		pageFrame.Parent = content
-		pageFrame.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
 		local pageLayout = Instance.new('UIListLayout')
 		pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
