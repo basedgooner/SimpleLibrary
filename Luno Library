@@ -100,73 +100,212 @@ local notificationContainer
 local function createNotification(message, notificationType)
 	if not notificationContainer then
 		notificationContainer = Instance.new('Frame')
-		notificationContainer.Size = UDim2.new(0, 280, 1, 0)
-		notificationContainer.Position = UDim2.new(1, -300, 0, 20)
+		notificationContainer.Size = UDim2.new(0, 420, 1, 0)
+		notificationContainer.Position = UDim2.new(1, -440, 0, 20)
 		notificationContainer.BackgroundTransparency = 1
 		notificationContainer.Parent = CoreGui:FindFirstChild('MinimalGUI') or CoreGui
 		
 		local layout = Instance.new('UIListLayout')
 		layout.FillDirection = Enum.FillDirection.Vertical
 		layout.SortOrder = Enum.SortOrder.LayoutOrder
-		layout.Padding = UDim.new(0, 8)
+		layout.Padding = UDim.new(0, 12)
+		layout.VerticalAlignment = Enum.VerticalAlignment.Top
 		layout.Parent = notificationContainer
 	end
 
 	local colors = Config.Colors.Light
 	local bgColor = colors.Surface
 	local textColor = colors.Text
-	local borderColor = colors.Primary
+	local accentColor = colors.Primary
+	local iconText = "ℹ"
+	local shadowColor = Color3.fromRGB(0, 0, 0)
 
 	if notificationType == 'success' then
-		borderColor = colors.Success
+		accentColor = colors.Success
+		iconText = "✓"
 	elseif notificationType == 'danger' then
-		borderColor = colors.Danger
+		accentColor = colors.Danger
+		iconText = "✕"
 	elseif notificationType == 'warning' then
-		borderColor = colors.Warning
+		accentColor = colors.Warning
+		iconText = "⚠"
 	end
 
+	-- Main notification frame
 	local notification = Instance.new('Frame')
-	notification.Size = UDim2.new(1, 0, 0, 50)
+	notification.Size = UDim2.new(1, 0, 0, 72)
 	notification.BackgroundColor3 = bgColor
 	notification.BorderSizePixel = 0
 	notification.LayoutOrder = #notificationQueue + 1
 	notification.Parent = notificationContainer
-	Corner(notification, 12)
+	Corner(notification, 16)
 
-	local stroke = Instance.new('UIStroke')
-	stroke.Color = borderColor
-	stroke.Thickness = 2
-	stroke.Parent = notification
+	-- Drop shadow effect
+	local shadow = Instance.new('Frame')
+	shadow.Size = UDim2.new(1, 4, 1, 4)
+	shadow.Position = UDim2.new(0, 2, 0, 2)
+	shadow.BackgroundColor3 = shadowColor
+	shadow.BackgroundTransparency = 0.85
+	shadow.BorderSizePixel = 0
+	shadow.ZIndex = notification.ZIndex - 1
+	shadow.Parent = notificationContainer
+	Corner(shadow, 16)
 
+	-- Subtle border
+	local border = Instance.new('UIStroke')
+	border.Color = colors.BorderLight
+	border.Thickness = 1
+	border.Transparency = 0.3
+	border.Parent = notification
+
+	-- Accent bar on the left
+	local accentBar = Instance.new('Frame')
+	accentBar.Size = UDim2.new(0, 4, 1, -16)
+	accentBar.Position = UDim2.new(0, 8, 0, 8)
+	accentBar.BackgroundColor3 = accentColor
+	accentBar.BorderSizePixel = 0
+	accentBar.Parent = notification
+	Corner(accentBar, 2)
+
+	-- Icon container
+	local iconContainer = Instance.new('Frame')
+	iconContainer.Size = UDim2.new(0, 40, 0, 40)
+	iconContainer.Position = UDim2.new(0, 20, 0, 16)
+	iconContainer.BackgroundColor3 = accentColor
+	iconContainer.BackgroundTransparency = 0.1
+	iconContainer.BorderSizePixel = 0
+	iconContainer.Parent = notification
+	Corner(iconContainer, 20)
+
+	-- Icon
+	local icon = Instance.new('TextLabel')
+	icon.Size = UDim2.new(1, 0, 1, 0)
+	icon.BackgroundTransparency = 1
+	icon.Text = iconText
+	icon.TextColor3 = accentColor
+	icon.TextSize = 16
+	icon.Font = Config.Fonts.Bold
+	icon.TextXAlignment = Enum.TextXAlignment.Center
+	icon.TextYAlignment = Enum.TextYAlignment.Center
+	icon.Parent = iconContainer
+
+	-- Message text
 	local text = Instance.new('TextLabel')
-	text.Size = UDim2.new(1, -20, 1, 0)
-	text.Position = UDim2.new(0, 10, 0, 0)
+	text.Size = UDim2.new(1, -80, 1, -16)
+	text.Position = UDim2.new(0, 68, 0, 8)
 	text.BackgroundTransparency = 1
 	text.Text = message
 	text.TextColor3 = textColor
-	text.TextSize = 13
+	text.TextSize = 14
 	text.Font = Config.Fonts.Medium
 	text.TextXAlignment = Enum.TextXAlignment.Left
+	text.TextYAlignment = Enum.TextYAlignment.Center
 	text.TextWrapped = true
+	text.RichText = false
 	text.Parent = notification
 
+	-- Close button
+	local closeBtn = Instance.new('TextButton')
+	closeBtn.Size = UDim2.new(0, 24, 0, 24)
+	closeBtn.Position = UDim2.new(1, -32, 0, 8)
+	closeBtn.BackgroundColor3 = colors.Surface2
+	closeBtn.BackgroundTransparency = 1
+	closeBtn.BorderSizePixel = 0
+	closeBtn.Text = "×"
+	closeBtn.TextColor3 = colors.TextMuted
+	closeBtn.TextSize = 16
+	closeBtn.Font = Config.Fonts.Medium
+	closeBtn.AutoButtonColor = false
+	closeBtn.Parent = notification
+	Corner(closeBtn, 12)
+
+	-- Close button hover effects
+	closeBtn.MouseEnter:Connect(function()
+		Tween(closeBtn, {
+			BackgroundTransparency = 0,
+			BackgroundColor3 = colors.Danger,
+			TextColor3 = Color3.fromRGB(255, 255, 255)
+		}, Config.Animation.Fast):Play()
+	end)
+	closeBtn.MouseLeave:Connect(function()
+		Tween(closeBtn, {
+			BackgroundTransparency = 1,
+			TextColor3 = colors.TextMuted
+		}, Config.Animation.Fast):Play()
+	end)
+
+	-- Progress bar at bottom
+	local progressBar = Instance.new('Frame')
+	progressBar.Size = UDim2.new(1, -16, 0, 3)
+	progressBar.Position = UDim2.new(0, 8, 1, -11)
+	progressBar.BackgroundColor3 = colors.Surface3
+	progressBar.BorderSizePixel = 0
+	progressBar.Parent = notification
+	Corner(progressBar, 2)
+
+	local progressFill = Instance.new('Frame')
+	progressFill.Size = UDim2.new(1, 0, 1, 0)
+	progressFill.BackgroundColor3 = accentColor
+	progressFill.BackgroundTransparency = 0.3
+	progressFill.BorderSizePixel = 0
+	progressFill.Parent = progressBar
+	Corner(progressFill, 2)
+
+	-- Entrance animation
 	notification.Position = UDim2.new(1, 20, 0, 0)
-	Tween(notification, { Position = UDim2.new(0, 0, 0, 0) }, Config.Animation.Medium):Play()
-
-	table.insert(notificationQueue, notification)
-
-	task.wait(2.5)
-	Tween(notification, { Position = UDim2.new(1, 20, 0, 0) }, Config.Animation.Medium):Play()
-	task.wait(Config.Animation.Medium)
+	notification.BackgroundTransparency = 1
+	shadow.BackgroundTransparency = 1
 	
-	for i, notif in ipairs(notificationQueue) do
-		if notif == notification then
-			table.remove(notificationQueue, i)
-			break
+	-- Animate entrance
+	Tween(notification, { 
+		Position = UDim2.new(0, 0, 0, 0),
+		BackgroundTransparency = 0
+	}, Config.Animation.Medium, Enum.EasingStyle.Back):Play()
+	
+	Tween(shadow, { 
+		BackgroundTransparency = 0.85 
+	}, Config.Animation.Medium):Play()
+
+	table.insert(notificationQueue, {notification = notification, shadow = shadow})
+
+	-- Auto dismiss functionality
+	local dismissTween
+	local progressTween = Tween(progressFill, { Size = UDim2.new(0, 0, 1, 0) }, 3.5)
+	progressTween:Play()
+
+	local function dismissNotification()
+		if dismissTween then return end
+		dismissTween = true
+		
+		-- Exit animations
+		Tween(notification, { 
+			Position = UDim2.new(1, 20, 0, 0),
+			BackgroundTransparency = 1
+		}, Config.Animation.Medium):Play()
+		
+		Tween(shadow, { 
+			BackgroundTransparency = 1 
+		}, Config.Animation.Medium):Play()
+		
+		task.wait(Config.Animation.Medium)
+		
+		-- Remove from queue
+		for i, item in ipairs(notificationQueue) do
+			if item.notification == notification then
+				table.remove(notificationQueue, i)
+				break
+			end
 		end
+		
+		notification:Destroy()
+		shadow:Destroy()
 	end
-	
-	notification:Destroy()
+
+	-- Close button click
+	closeBtn.MouseButton1Click:Connect(dismissNotification)
+
+	-- Auto dismiss after progress completes
+	progressTween.Completed:Connect(dismissNotification)
 end
 
 function MinimalGUI:CreateWindow(title, size)
