@@ -1,1 +1,1064 @@
+local MinimalGUI = {}
+local TweenService = game:GetService('TweenService')
+local UserInputService = game:GetService('UserInputService')
+local CoreGui = game:GetService('CoreGui')
 
+if getgenv then
+	local existingGUI = getgenv().MinimalGUI_Instance
+	if existingGUI and typeof(existingGUI.DestroyAll) == "function" then
+		pcall(function() existingGUI:DestroyAll() end)
+	end
+end
+
+local Config = {
+	Colors = {
+		Light = {
+			Background = Color3.fromRGB(250, 250, 252),
+			Surface = Color3.fromRGB(255, 255, 255),
+			Surface2 = Color3.fromRGB(248, 249, 251),
+			Surface3 = Color3.fromRGB(241, 245, 249),
+			Primary = Color3.fromRGB(79, 70, 229),
+			PrimaryHover = Color3.fromRGB(99, 102, 241),
+			PrimaryDim = Color3.fromRGB(67, 56, 202),
+			Text = Color3.fromRGB(15, 23, 42),
+			TextSecondary = Color3.fromRGB(71, 85, 105),
+			TextMuted = Color3.fromRGB(148, 163, 184),
+			Success = Color3.fromRGB(34, 197, 94),
+			Danger = Color3.fromRGB(239, 68, 68),
+			Warning = Color3.fromRGB(251, 146, 60),
+			Border = Color3.fromRGB(226, 232, 240),
+			BorderLight = Color3.fromRGB(203, 213, 225),
+			Accent = Color3.fromRGB(147, 51, 234),
+		},
+		Dark = {
+			Background = Color3.fromRGB(15, 15, 20),
+			Surface = Color3.fromRGB(25, 25, 32),
+			Surface2 = Color3.fromRGB(30, 30, 38),
+			Surface3 = Color3.fromRGB(35, 35, 45),
+			Primary = Color3.fromRGB(99, 102, 241),
+			PrimaryHover = Color3.fromRGB(129, 132, 255),
+			PrimaryDim = Color3.fromRGB(79, 82, 220),
+			Text = Color3.fromRGB(240, 240, 245),
+			TextSecondary = Color3.fromRGB(160, 170, 180),
+			TextMuted = Color3.fromRGB(120, 130, 140),
+			Success = Color3.fromRGB(34, 197, 94),
+			Danger = Color3.fromRGB(239, 68, 68),
+			Warning = Color3.fromRGB(251, 146, 60),
+			Border = Color3.fromRGB(55, 55, 70),
+			BorderLight = Color3.fromRGB(65, 65, 80),
+			Accent = Color3.fromRGB(147, 51, 234),
+		},
+	},
+	Fonts = {
+		Regular = Enum.Font.Gotham,
+		Medium = Enum.Font.GothamMedium,
+		Bold = Enum.Font.GothamBold,
+	},
+	Spacing = { xs = 4, sm = 8, md = 12, lg = 16, xl = 24 },
+	Radius = { sm = 20, md = 24, lg = 28, xl = 32 },
+	Animation = { Fast = 0.12, Medium = 0.2, Slow = 0.3 },
+	Layout = {
+		RowHeight = 48,
+		RowSpacing = 12,
+		EdgePadding = 20,
+		MaxWidth = 620,
+		MaxHeight = 460,
+	},
+}
+
+local function Tween(object, properties, duration, style)
+	return TweenService:Create(
+		object,
+		TweenInfo.new(
+			duration or Config.Animation.Medium,
+			style or Enum.EasingStyle.Quint,
+			Enum.EasingDirection.Out
+		),
+		properties
+	)
+end
+
+local function Corner(parent, radius)
+	local corner = Instance.new('UICorner')
+	corner.CornerRadius = UDim.new(0, radius or Config.Radius.lg)
+	corner.Parent = parent
+	return corner
+end
+
+local function Stroke(parent, color, thickness)
+	local stroke = Instance.new('UIStroke')
+	stroke.Color = color or Color3.new(1, 1, 1)
+	stroke.Thickness = thickness or 1
+	stroke.Transparency = 0
+	stroke.Parent = parent
+	return stroke
+end
+
+local notificationQueue = {}
+
+local function createNotification(message, notificationType)
+	-- Create a dedicated ScreenGui for notifications
+	local notifGui = Instance.new('ScreenGui')
+	notifGui.Name = 'MinimalGUI_Notifications'
+	notifGui.Parent = CoreGui
+	notifGui.ResetOnSpawn = false
+	notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	local colors = Config.Colors.Light
+	local bgColor = colors.Surface
+	local textColor = colors.Text
+	local accentColor = colors.Primary
+	local iconText = "ℹ"
+
+	if notificationType == 'success' then
+		accentColor = colors.Success
+		iconText = "✓"
+	elseif notificationType == 'danger' then
+		accentColor = colors.Danger
+		iconText = "✕"
+	elseif notificationType == 'warning' then
+		accentColor = colors.Warning
+		iconText = "⚠"
+	end
+
+	-- Main notification frame
+	local notification = Instance.new('Frame')
+	notification.Size = UDim2.new(0, 380, 0, 72)
+	notification.Position = UDim2.new(1, -400, 0, 20 + (#notificationQueue * 84))
+	notification.BackgroundColor3 = bgColor
+	notification.BorderSizePixel = 0
+	notification.Parent = notifGui
+	Corner(notification, 16)
+
+
+
+	-- Subtle border
+	local border = Instance.new('UIStroke')
+	border.Color = colors.BorderLight
+	border.Thickness = 1
+	border.Transparency = 0.3
+	border.Parent = notification
+
+	-- Accent bar on the left
+	local accentBar = Instance.new('Frame')
+	accentBar.Size = UDim2.new(0, 4, 1, -16)
+	accentBar.Position = UDim2.new(0, 8, 0, 8)
+	accentBar.BackgroundColor3 = accentColor
+	accentBar.BorderSizePixel = 0
+	accentBar.Parent = notification
+	Corner(accentBar, 2)
+
+	-- Icon container
+	local iconContainer = Instance.new('Frame')
+	iconContainer.Size = UDim2.new(0, 40, 0, 40)
+	iconContainer.Position = UDim2.new(0, 20, 0, 16)
+	iconContainer.BackgroundColor3 = accentColor
+	iconContainer.BackgroundTransparency = 0.1
+	iconContainer.BorderSizePixel = 0
+	iconContainer.Parent = notification
+	Corner(iconContainer, 20)
+
+	-- Icon
+	local icon = Instance.new('TextLabel')
+	icon.Size = UDim2.new(1, 0, 1, 0)
+	icon.BackgroundTransparency = 1
+	icon.Text = iconText
+	icon.TextColor3 = accentColor
+	icon.TextSize = 16
+	icon.Font = Config.Fonts.Bold
+	icon.TextXAlignment = Enum.TextXAlignment.Center
+	icon.TextYAlignment = Enum.TextYAlignment.Center
+	icon.Parent = iconContainer
+
+	-- Message text
+	local text = Instance.new('TextLabel')
+	text.Size = UDim2.new(1, -80, 1, -16)
+	text.Position = UDim2.new(0, 68, 0, 8)
+	text.BackgroundTransparency = 1
+	text.Text = message
+	text.TextColor3 = textColor
+	text.TextSize = 14
+	text.Font = Config.Fonts.Medium
+	text.TextXAlignment = Enum.TextXAlignment.Left
+	text.TextYAlignment = Enum.TextYAlignment.Center
+	text.TextWrapped = true
+	text.RichText = false
+	text.Parent = notification
+
+	-- Close button
+	local closeBtn = Instance.new('TextButton')
+	closeBtn.Size = UDim2.new(0, 24, 0, 24)
+	closeBtn.Position = UDim2.new(1, -32, 0, 8)
+	closeBtn.BackgroundColor3 = colors.Surface2
+	closeBtn.BackgroundTransparency = 1
+	closeBtn.BorderSizePixel = 0
+	closeBtn.Text = "×"
+	closeBtn.TextColor3 = colors.TextMuted
+	closeBtn.TextSize = 16
+	closeBtn.Font = Config.Fonts.Medium
+	closeBtn.AutoButtonColor = false
+	closeBtn.Parent = notification
+	Corner(closeBtn, 12)
+
+	-- Close button hover effects
+	closeBtn.MouseEnter:Connect(function()
+		Tween(closeBtn, {
+			BackgroundTransparency = 0,
+			BackgroundColor3 = colors.Danger,
+			TextColor3 = Color3.fromRGB(255, 255, 255)
+		}, Config.Animation.Fast):Play()
+	end)
+	closeBtn.MouseLeave:Connect(function()
+		Tween(closeBtn, {
+			BackgroundTransparency = 1,
+			TextColor3 = colors.TextMuted
+		}, Config.Animation.Fast):Play()
+	end)
+
+	-- Progress bar at bottom
+	local progressBar = Instance.new('Frame')
+	progressBar.Size = UDim2.new(1, -16, 0, 3)
+	progressBar.Position = UDim2.new(0, 8, 1, -11)
+	progressBar.BackgroundColor3 = colors.Surface3
+	progressBar.BorderSizePixel = 0
+	progressBar.Parent = notification
+	Corner(progressBar, 2)
+
+	local progressFill = Instance.new('Frame')
+	progressFill.Size = UDim2.new(1, 0, 1, 0)
+	progressFill.BackgroundColor3 = accentColor
+	progressFill.BackgroundTransparency = 0.3
+	progressFill.BorderSizePixel = 0
+	progressFill.Parent = progressBar
+	Corner(progressFill, 2)
+
+	-- Entrance animation
+	notification.Position = UDim2.new(1, 20, 0, 20 + (#notificationQueue * 84))
+	
+	-- Animate entrance
+	Tween(notification, { 
+		Position = UDim2.new(1, -400, 0, 20 + (#notificationQueue * 84))
+	}, Config.Animation.Medium, Enum.EasingStyle.Back):Play()
+
+	table.insert(notificationQueue, {notification = notification, gui = notifGui})
+
+	-- Auto dismiss functionality
+	local dismissTween
+	local progressTween = Tween(progressFill, { Size = UDim2.new(0, 0, 1, 0) }, 3.5)
+	progressTween:Play()
+
+	local function dismissNotification()
+		if dismissTween then return end
+		dismissTween = true
+		
+		-- Exit animations
+		Tween(notification, { 
+			Position = UDim2.new(1, 20, 0, 20 + (#notificationQueue * 84))
+		}, Config.Animation.Medium):Play()
+		
+		task.wait(Config.Animation.Medium)
+		
+		-- Remove from queue
+		for i, item in ipairs(notificationQueue) do
+			if item.notification == notification then
+				table.remove(notificationQueue, i)
+				break
+			end
+		end
+		
+		notifGui:Destroy()
+	end
+
+	-- Close button click
+	closeBtn.MouseButton1Click:Connect(dismissNotification)
+
+	-- Auto dismiss after progress completes
+	progressTween.Completed:Connect(dismissNotification)
+end
+
+function MinimalGUI:CreateWindow(title, size)
+	title = title or 'MinimalGUI'
+	size = size or UDim2.new(0, Config.Layout.MaxWidth, 0, Config.Layout.MaxHeight)
+
+	local window = {
+		Pages = {},
+		CurrentPage = nil,
+		_connections = {},
+		_isDarkTheme = false,
+	}
+
+	self.CurrentWindow = window
+
+	function window:getColors()
+		return self._isDarkTheme and Config.Colors.Dark or Config.Colors.Light
+	end
+
+	function window:Notify(message, notificationType)
+		task.spawn(createNotification, message, notificationType or 'info')
+	end
+
+	local function updateTheme()
+		local colors = window:getColors()
+		main.BackgroundColor3 = colors.Background
+		header.BackgroundColor3 = colors.Surface
+		headerSeparator.BackgroundColor3 = colors.Border
+		titleText.TextColor3 = colors.Text
+		themeBtn.BackgroundColor3 = colors.Surface2
+		themeBtn.TextColor3 = colors.TextMuted
+		closeBtn.BackgroundColor3 = colors.Surface2
+		closeBtn.TextColor3 = colors.TextMuted
+
+		for _, stroke in pairs({ main:FindFirstChild('UIStroke') }) do
+			if stroke then
+				stroke.Color = colors.Border
+			end
+		end
+
+		for _, page in pairs(window.Pages) do
+			if page._button then
+				if window.CurrentPage == page then
+					page._button.BackgroundColor3 = colors.Primary
+					page._button.TextColor3 = Color3.fromRGB(255, 255, 255)
+				else
+					page._button.BackgroundColor3 = colors.Surface2
+					page._button.TextColor3 = colors.TextSecondary
+				end
+			end
+		end
+	end
+
+	local gui = Instance.new('ScreenGui')
+	gui.Name = 'MinimalGUI'
+	gui.Parent = CoreGui
+	gui.ResetOnSpawn = false
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	local main = Instance.new('Frame')
+	main.Size = size
+	main.Position = UDim2.new(0.5, 0, 0.5, 0)
+	main.AnchorPoint = Vector2.new(0.5, 0.5)
+	main.BackgroundColor3 = window:getColors().Background
+	main.BorderSizePixel = 0
+	main.Parent = gui
+	Corner(main, Config.Radius.xl)
+	Stroke(main, window:getColors().Border, 1.5)
+
+	local header = Instance.new('Frame')
+	header.Size = UDim2.new(1, 0, 0, 56)
+	header.BackgroundColor3 = window:getColors().Surface
+	header.BorderSizePixel = 0
+	header.Parent = main
+	Corner(header, Config.Radius.xl)
+
+	local headerSeparator = Instance.new('Frame')
+	headerSeparator.Size = UDim2.new(1, -40, 0, 1)
+	headerSeparator.Position = UDim2.new(0, 20, 1, -1)
+	headerSeparator.BackgroundColor3 = window:getColors().Border
+	headerSeparator.BorderSizePixel = 0
+	headerSeparator.Parent = header
+
+	local titleText = Instance.new('TextLabel')
+	titleText.Size = UDim2.new(0, 200, 0, 20)
+	titleText.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 18)
+	titleText.BackgroundTransparency = 1
+	titleText.Text = title
+	titleText.TextColor3 = window:getColors().Text
+	titleText.TextSize = 15
+	titleText.Font = Config.Fonts.Bold
+	titleText.TextXAlignment = Enum.TextXAlignment.Left
+	titleText.Parent = header
+
+	local themeBtn = Instance.new('TextButton')
+	themeBtn.Size = UDim2.new(0, 28, 0, 28)
+	themeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 62, 0, 14)
+	themeBtn.BackgroundColor3 = window:getColors().Surface2
+	themeBtn.BorderSizePixel = 0
+	themeBtn.Text = '☀'
+	themeBtn.TextColor3 = window:getColors().TextMuted
+	themeBtn.TextSize = 14
+	themeBtn.Font = Config.Fonts.Medium
+	themeBtn.AutoButtonColor = false
+	themeBtn.Parent = header
+	Corner(themeBtn, 14)
+
+	local themeBtnStroke = Instance.new('UIStroke')
+	themeBtnStroke.Thickness = 1
+	themeBtnStroke.Transparency = 1
+	themeBtnStroke.Color = window:getColors().PrimaryHover
+	themeBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	themeBtnStroke.Parent = themeBtn
+
+	themeBtn.MouseEnter:Connect(function()
+		Tween(themeBtn, {
+			BackgroundColor3 = window:getColors().Surface3,
+			TextColor3 = window:getColors().Text,
+		}, Config.Animation.Fast):Play()
+		Tween(themeBtnStroke, { Transparency = 0 }, Config.Animation.Fast):Play()
+	end)
+	themeBtn.MouseLeave:Connect(function()
+		Tween(themeBtn, {
+			BackgroundColor3 = window:getColors().Surface2,
+			TextColor3 = window:getColors().TextMuted,
+		}, Config.Animation.Fast):Play()
+		Tween(themeBtnStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
+	end)
+	themeBtn.MouseButton1Click:Connect(function()
+		window._isDarkTheme = not window._isDarkTheme
+		themeBtn.Text = window._isDarkTheme and '🌙' or '☀'
+		updateTheme()
+	end)
+
+	local closeBtn = Instance.new('TextButton')
+	closeBtn.Size = UDim2.new(0, 28, 0, 28)
+	closeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 28, 0, 14)
+	closeBtn.BackgroundColor3 = window:getColors().Surface2
+	closeBtn.BorderSizePixel = 0
+	closeBtn.Text = '×'
+	closeBtn.TextColor3 = window:getColors().TextMuted
+	closeBtn.TextSize = 16
+	closeBtn.Font = Config.Fonts.Medium
+	closeBtn.AutoButtonColor = false
+	closeBtn.Parent = header
+	Corner(closeBtn, 14)
+
+	local closeBtnStroke = Instance.new('UIStroke')
+	closeBtnStroke.Thickness = 1
+	closeBtnStroke.Transparency = 1
+	closeBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	closeBtnStroke.Color = window:getColors().Danger
+	closeBtnStroke.Parent = closeBtn
+
+	closeBtn.MouseEnter:Connect(function()
+		Tween(closeBtn, {
+			BackgroundColor3 = window:getColors().Danger,
+			TextColor3 = window:getColors().Surface,
+		}, Config.Animation.Fast):Play()
+		Tween(closeBtnStroke, { Transparency = 0 }, Config.Animation.Fast):Play()
+	end)
+	closeBtn.MouseLeave:Connect(function()
+		Tween(closeBtn, {
+			BackgroundColor3 = window:getColors().Surface2,
+			TextColor3 = window:getColors().TextMuted,
+		}, Config.Animation.Fast):Play()
+		Tween(closeBtnStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
+	end)
+	closeBtn.MouseButton1Click:Connect(function()
+		local shrinkTween = Tween(main, {
+			Size = UDim2.new(0, 0, 0, 0),
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+		}, Config.Animation.Slow, Enum.EasingStyle.Quint)
+		
+		for _, desc in ipairs(main:GetDescendants()) do
+			if desc:IsA("GuiObject") then
+				pcall(function()
+					Tween(desc, { Size = desc.Size * 0.5 }, Config.Animation.Slow):Play()
+				end)
+			end
+		end
+
+		shrinkTween:Play()
+		task.wait(Config.Animation.Slow)
+		gui:Destroy()
+	end)
+
+	local tabContainer = Instance.new('Frame')
+	tabContainer.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 0, 32)
+	tabContainer.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 68)
+	tabContainer.BackgroundTransparency = 1
+	tabContainer.BorderSizePixel = 0
+	tabContainer.Parent = main
+
+	local tabLayout = Instance.new('UIListLayout')
+	tabLayout.FillDirection = Enum.FillDirection.Horizontal
+	tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	tabLayout.Padding = UDim.new(0, 6)
+	tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+	tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	tabLayout.Parent = tabContainer
+
+	local content = Instance.new('Frame')
+	content.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 1, -116)
+	content.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 116)
+	content.BackgroundTransparency = 1
+	content.Parent = main
+
+	local dragData = {}
+	header.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragData.dragging = true
+			dragData.startPos = input.Position
+			dragData.frameStart = main.Position
+		end
+	end)
+
+	table.insert(
+		window._connections,
+		UserInputService.InputChanged:Connect(function(input)
+			if
+				input.UserInputType == Enum.UserInputType.MouseMovement
+				and dragData.dragging
+			then
+				local delta = input.Position - dragData.startPos
+				main.Position = UDim2.new(
+					dragData.frameStart.X.Scale,
+					dragData.frameStart.X.Offset + delta.X,
+					dragData.frameStart.Y.Scale,
+					dragData.frameStart.Y.Offset + delta.Y
+				)
+			end
+		end)
+	)
+
+	table.insert(
+		window._connections,
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				dragData.dragging = false
+			end
+		end)
+	)
+
+	function window:CreatePage(name)
+		local page = { Name = name, Elements = {}, _frame = nil, _button = nil }
+
+		local tabBtn = Instance.new('TextButton')
+		tabBtn.Size = UDim2.new(0, 0, 0, 32)
+		tabBtn.AutomaticSize = Enum.AutomaticSize.X
+		tabBtn.BackgroundColor3 = window:getColors().Surface2
+		tabBtn.BorderSizePixel = 0
+		tabBtn.Text = name
+		tabBtn.TextColor3 = window:getColors().TextSecondary
+		tabBtn.TextSize = 13
+		tabBtn.Font = Config.Fonts.Medium
+		tabBtn.LayoutOrder = #window.Pages + 1
+		tabBtn.AutoButtonColor = false
+		tabBtn.Parent = tabContainer
+		Corner(tabBtn, 16)
+
+		local tabPadding = Instance.new('UIPadding')
+		tabPadding.PaddingLeft = UDim.new(0, 12)
+		tabPadding.PaddingRight = UDim.new(0, 12)
+		tabPadding.Parent = tabBtn
+
+		local tabBtnStroke = Instance.new('UIStroke')
+		tabBtnStroke.Thickness = 1
+		tabBtnStroke.Transparency = 1
+		tabBtnStroke.Color = window:getColors().PrimaryHover
+		tabBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		tabBtnStroke.Parent = tabBtn
+
+		local pageFrame = Instance.new('ScrollingFrame')
+		pageFrame.Size = UDim2.new(1, 0, 1, 0)
+		pageFrame.BackgroundTransparency = 1
+		pageFrame.BorderSizePixel = 0
+		pageFrame.ScrollBarThickness = 4
+		pageFrame.ScrollBarImageColor3 = window:getColors().Primary
+		pageFrame.ScrollBarImageTransparency = 0.3
+		pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+		pageFrame.Visible = false
+		pageFrame.Parent = content
+
+		local pageLayout = Instance.new('UIListLayout')
+		pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		pageLayout.Padding = UDim.new(0, Config.Layout.RowSpacing)
+		pageLayout.Parent = pageFrame
+
+		local pagePadding = Instance.new('UIPadding')
+		pagePadding.PaddingTop = UDim.new(0, Config.Spacing.lg)
+		pagePadding.PaddingBottom = UDim.new(0, Config.Spacing.xl)
+		pagePadding.Parent = pageFrame
+
+		pageLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+			pageFrame.CanvasSize = UDim2.new(
+				0,
+				0,
+				0,
+				pageLayout.AbsoluteContentSize.Y + Config.Spacing.xl * 2
+			)
+		end)
+
+		tabBtn.MouseButton1Click:Connect(function()
+			for _, p in pairs(window.Pages) do
+				p._frame.Visible = false
+				Tween(p._button, {
+					BackgroundColor3 = window:getColors().Surface2,
+					TextColor3 = window:getColors().TextSecondary,
+				}, Config.Animation.Medium):Play()
+			end
+			pageFrame.Visible = true
+			Tween(tabBtn, {
+				BackgroundColor3 = window:getColors().Primary,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+			}, Config.Animation.Medium):Play()
+			window.CurrentPage = page
+		end)
+
+		tabBtn.MouseEnter:Connect(function()
+			if window.CurrentPage ~= page then
+				Tween(
+					tabBtn,
+					{ BackgroundColor3 = window:getColors().Surface3 },
+					Config.Animation.Fast
+				):Play()
+			end
+			Tween(tabBtnStroke, { Transparency = 0 }, Config.Animation.Fast):Play()
+		end)
+		tabBtn.MouseLeave:Connect(function()
+			if window.CurrentPage ~= page then
+				Tween(
+					tabBtn,
+					{ BackgroundColor3 = window:getColors().Surface2 },
+					Config.Animation.Fast
+				):Play()
+			end
+			Tween(tabBtnStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
+		end)
+
+		page._button = tabBtn
+		page._frame = pageFrame
+
+		function page:CreateButton(text, callback)
+			local container = Instance.new('Frame')
+			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
+			container.BackgroundTransparency = 1
+			container.Parent = pageFrame
+
+			local btn = Instance.new('TextButton')
+			btn.Size = UDim2.new(1, 0, 1, 0)
+			btn.BackgroundColor3 = window:getColors().Primary
+			btn.BorderSizePixel = 0
+			btn.Text = text
+			btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			btn.TextSize = 14
+			btn.Font = Config.Fonts.Medium
+			btn.AutoButtonColor = false
+			btn.Parent = container
+			Corner(btn, Config.Radius.lg)
+
+			local btnStroke = Instance.new('UIStroke')
+			btnStroke.Thickness = 1
+			btnStroke.Transparency = 1
+			btnStroke.Color = window:getColors().PrimaryHover
+			btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			btnStroke.Parent = btn
+
+			btn.MouseEnter:Connect(function()
+				Tween(
+					btn,
+					{ BackgroundColor3 = window:getColors().PrimaryHover },
+					Config.Animation.Fast
+				):Play()
+				Tween(btnStroke, { Transparency = 0 }, Config.Animation.Fast):Play()
+			end)
+			btn.MouseLeave:Connect(function()
+				Tween(
+					btn,
+					{ BackgroundColor3 = window:getColors().Primary },
+					Config.Animation.Fast
+				):Play()
+				Tween(btnStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
+			end)
+			btn.MouseButton1Click:Connect(function()
+				Tween(
+					btn,
+					{ BackgroundColor3 = window:getColors().PrimaryDim },
+					Config.Animation.Fast
+				):Play()
+				task.wait(0.06)
+				Tween(
+					btn,
+					{ BackgroundColor3 = window:getColors().Primary },
+					Config.Animation.Fast
+				):Play()
+				if callback then
+					callback()
+				end
+			end)
+
+			table.insert(page.Elements, container)
+			return container
+		end
+
+		function page:CreateToggle(text, defaultValue, callback)
+			local value = defaultValue or false
+
+			local container = Instance.new('Frame')
+			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
+			container.BackgroundColor3 = window:getColors().Surface
+			container.BorderSizePixel = 0
+			container.Parent = pageFrame
+			Corner(container, Config.Radius.lg)
+			Stroke(container, window:getColors().Border)
+
+			local label = Instance.new('TextLabel')
+			label.Size = UDim2.new(1, -70, 1, 0)
+			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = window:getColors().Text
+			label.TextSize = 14
+			label.Font = Config.Fonts.Regular
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = container
+
+			local toggle = Instance.new('TextButton')
+			toggle.Size = UDim2.new(0, 44, 0, 22)
+			toggle.Position = UDim2.new(1, -Config.Spacing.lg - 44, 0.5, -11)
+			toggle.BackgroundColor3 = value and window:getColors().Primary
+				or window:getColors().Surface3
+			toggle.BorderSizePixel = 0
+			toggle.Text = ''
+			toggle.AutoButtonColor = false
+			toggle.Parent = container
+			Corner(toggle, 11)
+
+			local toggleStroke = Instance.new('UIStroke')
+			toggleStroke.Thickness = 1
+			toggleStroke.Transparency = 1
+			toggleStroke.Color = window:getColors().PrimaryHover
+			toggleStroke.Parent = toggle
+
+			local thumb = Instance.new('Frame')
+			thumb.Size = UDim2.new(0, 18, 0, 18)
+			thumb.Position = value and UDim2.new(1, -20, 0.5, -9)
+				or UDim2.new(0, 2, 0.5, -9)
+			thumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			thumb.BorderSizePixel = 0
+			thumb.Parent = toggle
+			Corner(thumb, 9)
+
+			toggle.MouseEnter:Connect(function()
+				Tween(toggleStroke, { Transparency = 0 }, Config.Animation.Fast):Play()
+			end)
+			toggle.MouseLeave:Connect(function()
+				Tween(toggleStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
+			end)
+
+			toggle.MouseButton1Click:Connect(function()
+				value = not value
+				Tween(toggle, {
+					BackgroundColor3 = value and window:getColors().Primary
+						or window:getColors().Surface3,
+				}, Config.Animation.Medium):Play()
+				Tween(thumb, {
+					Position = value and UDim2.new(1, -20, 0.5, -9)
+						or UDim2.new(0, 2, 0.5, -9),
+				}, Config.Animation.Medium):Play()
+				if callback then
+					callback(value)
+				end
+			end)
+
+			table.insert(page.Elements, container)
+			return container, function()
+				return value
+			end
+		end
+
+		function page:CreateSlider(text, min, max, defaultValue, callback)
+			min, max = min or 0, max or 100
+			local value = defaultValue or min
+
+			local container = Instance.new('Frame')
+			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight + 20)
+			container.BackgroundColor3 = window:getColors().Surface
+			container.BorderSizePixel = 0
+			container.Parent = pageFrame
+			Corner(container, Config.Radius.md)
+			Stroke(container, window:getColors().Border)
+
+			local headerFrame = Instance.new('Frame')
+			headerFrame.Size = UDim2.new(1, 0, 0, 24)
+			headerFrame.Position = UDim2.new(0, 0, 0, Config.Spacing.md)
+			headerFrame.BackgroundTransparency = 1
+			headerFrame.Parent = container
+
+			local label = Instance.new('TextLabel')
+			label.Size = UDim2.new(1, -60, 1, 0)
+			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = window:getColors().Text
+			label.TextSize = 14
+			label.Font = Config.Fonts.Regular
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = headerFrame
+
+			local valueLabel = Instance.new('TextLabel')
+			valueLabel.Size = UDim2.new(0, 50, 1, 0)
+			valueLabel.Position = UDim2.new(1, -Config.Spacing.lg - 50, 0, 0)
+			valueLabel.BackgroundTransparency = 1
+			valueLabel.Text = tostring(value)
+			valueLabel.TextColor3 = window:getColors().Primary
+			valueLabel.TextSize = 13
+			valueLabel.Font = Config.Fonts.Bold
+			valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+			valueLabel.Parent = headerFrame
+
+			local track = Instance.new('TextButton')
+			track.Size = UDim2.new(1, -Config.Spacing.lg * 2, 0, 8)
+			track.Position = UDim2.new(
+				0,
+				Config.Spacing.lg,
+				1,
+				-Config.Spacing.lg - 4
+			)
+			track.BackgroundColor3 = window:getColors().Surface3
+			track.BorderSizePixel = 0
+			track.Text = ''
+			track.AutoButtonColor = false
+			track.Parent = container
+			Corner(track, 4)
+
+			local trackStroke = Instance.new('UIStroke')
+			trackStroke.Thickness = 1
+			trackStroke.Transparency = 1
+			trackStroke.Color = window:getColors().PrimaryHover
+			trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			trackStroke.Parent = track
+
+			local fill = Instance.new('Frame')
+			fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
+			fill.BackgroundColor3 = window:getColors().Primary
+			fill.BorderSizePixel = 0
+			fill.Parent = track
+			Corner(fill, 4)
+
+			local dragging = false
+
+			local function updateSlider(input)
+				local percent = math.clamp(
+					(input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X,
+					0, 1
+				)
+				value = math.round(min + (max - min) * percent)
+				valueLabel.Text = tostring(value)
+				Tween(fill, { Size = UDim2.new(percent, 0, 1, 0) }, Config.Animation.Fast):Play()
+				if callback then callback(value) end
+			end
+
+			track.MouseEnter:Connect(function()
+				Tween(trackStroke, { Transparency = 0 }, Config.Animation.Fast):Play()
+			end)
+			track.MouseLeave:Connect(function()
+				Tween(trackStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
+			end)
+
+			track.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					dragging = true
+					updateSlider(input)
+				end
+			end)
+
+			UserInputService.InputChanged:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+					updateSlider(input)
+				end
+			end)
+
+			UserInputService.InputEnded:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					dragging = false
+				end
+			end)
+
+			table.insert(page.Elements, container)
+			return container, function() return value end
+		end
+
+		function page:CreateDropdown(text, options, defaultValue, callback)
+			options = options or {}
+			local value = defaultValue or (options[1] or 'Select...')
+			local isOpen = false
+
+			local container = Instance.new('Frame')
+			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
+			container.BackgroundColor3 = window:getColors().Surface
+			container.BorderSizePixel = 0
+			container.Parent = pageFrame
+			Corner(container, Config.Radius.md)
+			Stroke(container, window:getColors().Border)
+
+			local label = Instance.new('TextLabel')
+			label.Size = UDim2.new(0.4, 0, 1, 0)
+			label.Position = UDim2.new(0, Config.Spacing.lg, 0, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = window:getColors().Text
+			label.TextSize = 14
+			label.Font = Config.Fonts.Regular
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = container
+
+			local dropdown = Instance.new('TextButton')
+			dropdown.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 28)
+			dropdown.Position = UDim2.new(0.4, 0, 0.5, -14)
+			dropdown.BackgroundColor3 = window:getColors().Surface2
+			dropdown.BorderSizePixel = 0
+			dropdown.Text = ''
+			dropdown.ClipsDescendants = true
+			dropdown.AutoButtonColor = false
+			dropdown.Parent = container
+			Corner(dropdown, Config.Radius.sm)
+
+			local dropdownStroke = Instance.new('UIStroke')
+			dropdownStroke.Thickness = 1
+			dropdownStroke.Transparency = 1
+			dropdownStroke.Color = window:getColors().PrimaryHover
+			dropdownStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			dropdownStroke.Parent = dropdown
+
+			local valueText = Instance.new('TextLabel')
+			valueText.Size = UDim2.new(1, -28, 1, 0)
+			valueText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
+			valueText.BackgroundTransparency = 1
+			valueText.Text = value
+			valueText.TextColor3 = window:getColors().Text
+			valueText.TextSize = 13
+			valueText.Font = Config.Fonts.Regular
+			valueText.TextXAlignment = Enum.TextXAlignment.Left
+			valueText.Parent = dropdown
+
+			local arrow = Instance.new('TextLabel')
+			arrow.Size = UDim2.new(0, 20, 1, 0)
+			arrow.Position = UDim2.new(1, -20, 0, 0)
+			arrow.BackgroundTransparency = 1
+			arrow.Text = '▼'
+			arrow.TextColor3 = window:getColors().TextMuted
+			arrow.TextSize = 9
+			arrow.Font = Config.Fonts.Regular
+			arrow.Parent = dropdown
+
+			dropdown.MouseEnter:Connect(function()
+				Tween(dropdownStroke, { Transparency = 0 }, Config.Animation.Fast):Play()
+			end)
+			dropdown.MouseLeave:Connect(function()
+				Tween(dropdownStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
+			end)
+
+			local optionsList = Instance.new('Frame')
+			optionsList.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 0)
+			optionsList.Position = UDim2.new(0.4, 0, 1, 2)
+			optionsList.BackgroundColor3 = window:getColors().Surface
+			optionsList.BorderSizePixel = 0
+			optionsList.Visible = false
+			optionsList.ZIndex = 1000
+			optionsList.Parent = container
+			Corner(optionsList, Config.Radius.sm)
+			Stroke(optionsList, window:getColors().BorderLight)
+
+			local optionsLayout = Instance.new('UIListLayout')
+			optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			optionsLayout.Parent = optionsList
+
+			local function toggleDropdown()
+				isOpen = not isOpen
+				local targetHeight = isOpen and (#options * 28) or 0
+				optionsList.Visible = true
+				Tween(optionsList, { Size = UDim2.new(0.6, -Config.Spacing.lg, 0, targetHeight) }, Config.Animation.Medium):Play()
+				Tween(arrow, { Rotation = isOpen and 180 or 0 }, Config.Animation.Medium):Play()
+				if not isOpen then
+					task.wait(Config.Animation.Medium)
+					optionsList.Visible = false
+				end
+			end
+
+			dropdown.MouseButton1Click:Connect(toggleDropdown)
+
+			for i, option in ipairs(options) do
+				local optionBtn = Instance.new('TextButton')
+				optionBtn.Size = UDim2.new(1, 0, 0, 28)
+				optionBtn.BackgroundColor3 = window:getColors().Surface
+				optionBtn.BackgroundTransparency = 1
+				optionBtn.BorderSizePixel = 0
+				optionBtn.Text = ''
+				optionBtn.LayoutOrder = i
+				optionBtn.AutoButtonColor = false
+				optionBtn.Parent = optionsList
+
+				local optionText = Instance.new('TextLabel')
+				optionText.Size = UDim2.new(1, -Config.Spacing.md * 2, 1, 0)
+				optionText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
+				optionText.BackgroundTransparency = 1
+				optionText.Text = option
+				optionText.TextColor3 = window:getColors().Text
+				optionText.TextSize = 13
+				optionText.Font = Config.Fonts.Regular
+				optionText.TextXAlignment = Enum.TextXAlignment.Left
+				optionText.Parent = optionBtn
+
+				optionBtn.MouseEnter:Connect(function()
+					Tween(optionBtn, {
+						BackgroundTransparency = 0,
+						BackgroundColor3 = window:getColors().Surface2,
+					}, Config.Animation.Fast):Play()
+				end)
+				optionBtn.MouseLeave:Connect(function()
+					Tween(optionBtn, { BackgroundTransparency = 1 }, Config.Animation.Fast):Play()
+				end)
+				optionBtn.MouseButton1Click:Connect(function()
+					value = option
+					valueText.Text = option
+					toggleDropdown()
+					if callback then callback(option) end
+				end)
+			end
+
+			table.insert(page.Elements, container)
+			return container, function() return value end
+		end
+
+		window.Pages[name] = page
+
+		if not window.CurrentPage then
+			pageFrame.Visible = true
+			Tween(tabBtn, {
+				BackgroundColor3 = window:getColors().Primary,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+			}, Config.Animation.Fast):Play()
+			window.CurrentPage = page
+		end
+
+		return page
+	end
+
+	function window:Destroy()
+		for _, connection in pairs(window._connections) do
+			connection:Disconnect()
+		end
+		gui:Destroy()
+	end
+
+	main.Size = UDim2.new(0, 0, 0, 0)
+	Tween(main, { Size = size }, Config.Animation.Slow, Enum.EasingStyle.Quint):Play()
+
+	return window
+end
+
+if getgenv then
+	getgenv().MinimalGUI_Instance = MinimalGUI
+end
+
+function MinimalGUI:DestroyAll()
+	if typeof(self.CurrentWindow) == "table" and self.CurrentWindow.Destroy then
+		pcall(function() self.CurrentWindow:Destroy() end)
+	end
+
+	-- Clean up all notification GUIs
+	for _, item in ipairs(notificationQueue) do
+		if item.gui then
+			pcall(function() item.gui:Destroy() end)
+		end
+	end
+
+	notificationQueue = {}
+	self.CurrentWindow = nil
+
+	setmetatable(self, nil)
+	for k in pairs(self) do
+		self[k] = nil
+	end
+end
+
+return MinimalGUI
