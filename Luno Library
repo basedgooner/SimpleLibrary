@@ -900,6 +900,7 @@ function MinimalGUI:CreateWindow(title, size)
 			dropdown.ClipsDescendants = true
 			dropdown.AutoButtonColor = false
 			dropdown.Parent = container
+			dropdown.ZIndex = 5
 			Corner(dropdown, Config.Radius.sm)
 
 			local dropdownStroke = Instance.new('UIStroke')
@@ -943,7 +944,7 @@ function MinimalGUI:CreateWindow(title, size)
 			optionsList.BackgroundColor3 = window:getColors().Surface
 			optionsList.BorderSizePixel = 0
 			optionsList.Visible = false
-			optionsList.ZIndex = 1000
+			optionsList.ZIndex = 6
 			optionsList.Parent = container
 			Corner(optionsList, Config.Radius.sm)
 			Stroke(optionsList, window:getColors().BorderLight)
@@ -976,6 +977,7 @@ function MinimalGUI:CreateWindow(title, size)
 				optionBtn.LayoutOrder = i
 				optionBtn.AutoButtonColor = false
 				optionBtn.Parent = optionsList
+				optionBtn.ZIndex = 6
 
 				local optionText = Instance.new('TextLabel')
 				optionText.Size = UDim2.new(1, -Config.Spacing.md * 2, 1, 0)
