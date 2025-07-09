@@ -103,7 +103,18 @@ local function createNotification(message, notificationType)
 		notificationContainer.Size = UDim2.new(0, 420, 1, 0)
 		notificationContainer.Position = UDim2.new(1, -440, 0, 20)
 		notificationContainer.BackgroundTransparency = 1
-		notificationContainer.Parent = CoreGui:FindFirstChild('MinimalGUI') or CoreGui
+		notificationContainer.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		
+		-- Find or create the GUI parent
+		local parentGUI = CoreGui:FindFirstChild('MinimalGUI')
+		if not parentGUI then
+			parentGUI = Instance.new('ScreenGui')
+			parentGUI.Name = 'MinimalGUI_Notifications'
+			parentGUI.Parent = CoreGui
+			parentGUI.ResetOnSpawn = false
+			parentGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		end
+		notificationContainer.Parent = parentGUI
 		
 		local layout = Instance.new('UIListLayout')
 		layout.FillDirection = Enum.FillDirection.Vertical
@@ -118,7 +129,6 @@ local function createNotification(message, notificationType)
 	local textColor = colors.Text
 	local accentColor = colors.Primary
 	local iconText = "ℹ"
-	local shadowColor = Color3.fromRGB(0, 0, 0)
 
 	if notificationType == 'success' then
 		accentColor = colors.Success
@@ -137,19 +147,11 @@ local function createNotification(message, notificationType)
 	notification.BackgroundColor3 = bgColor
 	notification.BorderSizePixel = 0
 	notification.LayoutOrder = #notificationQueue + 1
+	notification.ZIndex = 100
 	notification.Parent = notificationContainer
 	Corner(notification, 16)
 
-	-- Drop shadow effect
-	local shadow = Instance.new('Frame')
-	shadow.Size = UDim2.new(1, 4, 1, 4)
-	shadow.Position = UDim2.new(0, 2, 0, 2)
-	shadow.BackgroundColor3 = shadowColor
-	shadow.BackgroundTransparency = 0.85
-	shadow.BorderSizePixel = 0
-	shadow.ZIndex = notification.ZIndex - 1
-	shadow.Parent = notificationContainer
-	Corner(shadow, 16)
+
 
 	-- Subtle border
 	local border = Instance.new('UIStroke')
@@ -254,19 +256,14 @@ local function createNotification(message, notificationType)
 	-- Entrance animation
 	notification.Position = UDim2.new(1, 20, 0, 0)
 	notification.BackgroundTransparency = 1
-	shadow.BackgroundTransparency = 1
 	
 	-- Animate entrance
 	Tween(notification, { 
 		Position = UDim2.new(0, 0, 0, 0),
 		BackgroundTransparency = 0
 	}, Config.Animation.Medium, Enum.EasingStyle.Back):Play()
-	
-	Tween(shadow, { 
-		BackgroundTransparency = 0.85 
-	}, Config.Animation.Medium):Play()
 
-	table.insert(notificationQueue, {notification = notification, shadow = shadow})
+	table.insert(notificationQueue, {notification = notification})
 
 	-- Auto dismiss functionality
 	local dismissTween
@@ -283,10 +280,6 @@ local function createNotification(message, notificationType)
 			BackgroundTransparency = 1
 		}, Config.Animation.Medium):Play()
 		
-		Tween(shadow, { 
-			BackgroundTransparency = 1 
-		}, Config.Animation.Medium):Play()
-		
 		task.wait(Config.Animation.Medium)
 		
 		-- Remove from queue
@@ -298,7 +291,6 @@ local function createNotification(message, notificationType)
 		end
 		
 		notification:Destroy()
-		shadow:Destroy()
 	end
 
 	-- Close button click
