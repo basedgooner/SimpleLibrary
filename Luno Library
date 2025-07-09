@@ -102,7 +102,6 @@ local function createNotification(message, notificationType)
 	notifGui.Name = 'MinimalGUI_Notifications'
 	notifGui.Parent = CoreGui
 	notifGui.ResetOnSpawn = false
-	notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local colors = Config.Colors.Light
 	local bgColor = colors.Surface
