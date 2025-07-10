@@ -589,21 +589,22 @@ function MinimalGUI:CreateWindow(title, size)
         pageFrame.Visible = false
         pageFrame.Parent = content
 
-        ListLayout(pageFrame, Config.Layout.RowSpacing, Enum.FillDirection.Vertical)
-
         local pagePadding = Instance.new('UIPadding')
         pagePadding.PaddingTop = UDim.new(0, Config.Spacing.md)
         pagePadding.PaddingBottom = UDim.new(0, Config.Spacing.xl)
         pagePadding.Parent = pageFrame
 
-        pageLayout.AbsoluteContentSize:GetPropertyChangedSignal('Y'):Connect(function() -- Corrected layout property
-            pageFrame.CanvasSize = UDim2.new(
-                0,
-                0,
-                0,
-                pageLayout.AbsoluteContentSize.Y + Config.Spacing.xl * 2
-            )
-        end)
+        local pageLayout = ListLayout(pageFrame, Config.Layout.RowSpacing, Enum.FillDirection.Vertical)
+
+pageLayout.AbsoluteContentSize:GetPropertyChangedSignal('Y'):Connect(function()
+    pageFrame.CanvasSize = UDim2.new(
+        0,
+        0,
+        0,
+        pageLayout.AbsoluteContentSize.Y + Config.Spacing.xl * 2
+    )
+end)
+
 
         tabBtn.MouseButton1Click:Connect(function()
             for _, p in pairs(window.Pages) do
