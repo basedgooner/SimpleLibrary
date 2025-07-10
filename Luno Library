@@ -395,7 +395,7 @@ function MinimalGUI:CreateWindow(title, size)
     main.Parent = gui
     Corner(main, Config.Radius.xl)
     Stroke(main, nil, 1) -- Main window's primary white border
-    local mainGlossEffect = FrameOutline(main, 5, 0.9, Enum.ApplyStrokeMode.Context) -- Subtle inner white glow for gloss
+    local mainGlossEffect = FrameOutline(main, 5, 0.9, Enum.ApplyStrokeMode.Border) -- Subtle inner white glow for gloss
     mainGlossEffect.Name = "MainGlossEffect"
     main.Transparency = 1 -- Start transparent for fade-in
 
