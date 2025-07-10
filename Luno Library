@@ -54,9 +54,9 @@ local Config = {
 		},
 	},
 	Fonts = {
-		Regular = Enum.Font.Inter,
-		Medium = Enum.Font.InterMedium,
-		Bold = Enum.Font.InterBold,
+		Regular = Enum.Font.Gotham,
+		Medium = Enum.Font.GothamMedium,
+		Bold = Enum.Font.GothamBlack,
 	},
 	Spacing = { xs = 6, sm = 10, md = 16, lg = 20, xl = 28 },
 	Radius = { sm = 12, md = 16, lg = 20, xl = 24 },
