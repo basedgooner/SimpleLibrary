@@ -129,7 +129,6 @@ local function DropShadow(parent, offset, color, transparency, strength)
     shadow.Transparency = transparency or 0.8
     shadow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     shadow.LineJoinMode = Enum.LineJoinMode.Round
-    shadow.Offset = UDim2.new(0, offset and offset.X or 0, 0, offset and offset.Y or 2)
     shadow.Parent = parent
     return shadow
 end
