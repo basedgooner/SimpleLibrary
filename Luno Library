@@ -1,6 +1,4 @@
-Of course. Here is the revamped and improved version of your Luau code.
 
-```lua
 --[[
     MinimalGUI Revamped
     Improved by Gemini
@@ -453,4 +451,3 @@ if getgenv then
 end
 
 return MinimalGUI
-```
