@@ -29,10 +29,10 @@ local Config = {
             Success = Color3.fromRGB(30, 180, 90),      -- Verdant green
             Danger = Color3.fromRGB(220, 50, 50),       -- Vibrant red
             Warning = Color3.fromRGB(250, 150, 50),     -- Warm orange
-            Border = Color3.fromRGB(200, 210, 220),     -- Soft border
-            BorderLight = Color3.fromRGB(220, 230, 240),-- Very light border
+            Border = Color3.fromRGB(200, 210, 220),     -- Soft border (Note: actual UIStroke color is forced white below)
+            BorderLight = Color3.fromRGB(220, 230, 240),-- Very light border (Note: actual UIStroke color is forced white below)
             Accent = Color3.fromRGB(150, 70, 240),      -- Purple accent (not widely used)
-            Shadow = Color3.fromRGB(0, 0, 0),           -- For subtle shadows
+            Shadow = Color3.fromRGB(0, 0, 0),           -- For subtle Frame outlines that act as shadows
         },
         Dark = {
             Background = Color3.fromRGB(20, 25, 35),    -- Deep dark blue-gray background
@@ -99,15 +99,34 @@ local function Corner(parent, radius)
 end
 
 -- Helper function for adding UIStroke (border effect)
-local function Stroke(parent, color, thickness, transparency, applyMode)
+-- As per instruction, this function now forces the stroke color to white.
+local function Stroke(parent, _, thickness, transparency, applyMode)
     local stroke = Instance.new('UIStroke')
-    stroke.Color = color or Color3.new(1, 1, 1)
+    stroke.Color = Color3.new(1, 1, 1) -- force white outline
     stroke.Thickness = thickness or 1
     stroke.Transparency = transparency or 0
     stroke.ApplyStrokeMode = applyMode or Enum.ApplyStrokeMode.Border
     stroke.Parent = parent
     return stroke
 end
+
+-- Helper for an outline/highlight effect using UIStroke.
+-- This is useful for secondary strokes or effects that need to be distinctly added,
+-- and its color is also hardcoded white due to the overall theme requirement.
+local function FrameOutline(parent, thickness, transparency, applyMode, offset)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.new(1, 1, 1) -- Keep this white as per general instruction for outlines.
+    stroke.Thickness = thickness or 1
+    stroke.Transparency = transparency or 0
+    stroke.ApplyStrokeMode = applyMode or Enum.ApplyStrokeMode.Border
+    stroke.LineJoinMode = Enum.LineJoinMode.Round
+    if offset then
+        stroke.Offset = offset
+    end
+    stroke.Parent = parent
+    return stroke
+end
+
 
 -- Helper function for adding a subtle UIListLayout
 local function ListLayout(parent, padding, fillDirection, alignment)
@@ -119,18 +138,6 @@ local function ListLayout(parent, padding, fillDirection, alignment)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Parent = parent
     return layout
-end
-
--- Helper for simple DropShadow-like effect
-local function DropShadow(parent, offset, color, transparency, strength)
-    local shadow = Instance.new("UIStroke")
-    shadow.Color = color or Config.Colors.Light.Shadow
-    shadow.Thickness = strength or 2
-    shadow.Transparency = transparency or 0.8
-    shadow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    shadow.LineJoinMode = Enum.LineJoinMode.Round
-    shadow.Parent = parent
-    return shadow
 end
 
 -- --- NOTIFICATION SYSTEM ---
@@ -151,11 +158,11 @@ local function setupNotificationContainer()
 
     NotificationsFrame = Instance.new('Frame')
     NotificationsFrame.Name = 'NotificationsFrame'
-    NotificationsFrame.Size = UDim2.new(0, 360, 1, -Config.Spacing.xl * 2) -- Fixed width, dynamic height
+    NotificationsFrame.Size = UDim2.new(0, 360, 1, -Config.Spacing.xl * 2) -- Fixed width, dynamic height based on padding
     NotificationsFrame.Position = UDim2.new(1, -Config.Spacing.xl - NotificationsFrame.Size.X.Offset, 0, Config.Spacing.xl)
     NotificationsFrame.BackgroundTransparency = 1
     NotificationsFrame.BorderSizePixel = 0
-    NotificationsFrame.ClipsDescendants = true -- Important for smooth transitions when many notifications
+    NotificationsFrame.ClipsDescendants = true
     NotificationsFrame.Parent = NotificationsScreenGui
 
     ListLayout(NotificationsFrame, Config.Spacing.md, Enum.FillDirection.Vertical, { H = Enum.HorizontalAlignment.Right, V = Enum.VerticalAlignment.Top })
@@ -184,7 +191,7 @@ local function createNotification(message, notificationType)
     local notification = Instance.new('Frame')
     notification.Name = 'Notification_' .. os.time()
     notification.Size = UDim2.new(1, 0, 0, 68) -- Slightly shorter height
-    notification.BackgroundTransparency = 1 -- Start transparent for animation
+    notification.BackgroundTransparency = 1
     notification.BorderSizePixel = 0
     notification.Parent = NotificationsFrame
     notification.ClipsDescendants = true
@@ -196,7 +203,7 @@ local function createNotification(message, notificationType)
     bgFrame.BorderSizePixel = 0
     bgFrame.Parent = notification
     Corner(bgFrame, Config.Radius.lg)
-    Stroke(bgFrame, colors.Border, 1)
+    Stroke(bgFrame, nil, 1) -- White stroke for notification background
 
     local accentBar = Instance.new('Frame')
     accentBar.Size = UDim2.new(0, 4, 1, -Config.Spacing.sm * 2)
@@ -207,10 +214,10 @@ local function createNotification(message, notificationType)
     Corner(accentBar, 2)
 
     local iconContainer = Instance.new('Frame')
-    iconContainer.Size = UDim2.new(0, 36, 0, 36) -- Slightly smaller icon
+    iconContainer.Size = UDim2.new(0, 36, 0, 36)
     iconContainer.Position = UDim2.new(0, Config.Spacing.md + Config.Spacing.sm, 0.5, -18)
     iconContainer.BackgroundColor3 = accentColor
-    iconContainer.BackgroundTransparency = 0.85 -- More transparent
+    iconContainer.BackgroundTransparency = 0.85
     iconContainer.BorderSizePixel = 0
     iconContainer.Parent = bgFrame
     Corner(iconContainer, 18)
@@ -241,7 +248,7 @@ local function createNotification(message, notificationType)
     text.Parent = bgFrame
 
     local closeBtn = Instance.new('TextButton')
-    closeBtn.Size = UDim2.new(0, 20, 0, 20) -- Smaller close button
+    closeBtn.Size = UDim2.new(0, 20, 0, 20)
     closeBtn.Position = UDim2.new(1, -Config.Spacing.lg, 0, Config.Spacing.sm)
     closeBtn.BackgroundColor3 = colors.Surface2
     closeBtn.BackgroundTransparency = 1
@@ -264,7 +271,7 @@ local function createNotification(message, notificationType)
     end)
 
     local progressBar = Instance.new('Frame')
-    progressBar.Size = UDim2.new(1, -Config.Spacing.md, 0, 2) -- Thinner progress bar
+    progressBar.Size = UDim2.new(1, -Config.Spacing.md, 0, 2)
     progressBar.Position = UDim2.new(0, Config.Spacing.sm, 1, -Config.Spacing.sm)
     progressBar.BackgroundColor3 = colors.Surface3
     progressBar.BackgroundTransparency = 0.7
@@ -281,7 +288,7 @@ local function createNotification(message, notificationType)
     Corner(progressFill, 1)
 
     -- Entrance animation
-    notification.Position = UDim2.new(1.1, 0, 0, 0) -- Start further off-screen
+    notification.Position = UDim2.new(1.1, 0, 0, 0)
     Tween(notification, { Position = UDim2.new(0, 0, 0, 0) }, Config.Animation.Slow, Config.Easing.Bounce, Enum.EasingDirection.Out):Play()
     Tween(bgFrame, { Transparency = 0 }, Config.Animation.Slow, Config.Easing.Interaction):Play()
 
@@ -295,7 +302,6 @@ local function createNotification(message, notificationType)
         if dismissTween then return end
         dismissTween = true
 
-        -- Exit animations
         Tween(notification, { Position = UDim2.new(1.1, 0, 0, 0), Transparency = 1 }, Config.Animation.Medium, Config.Easing.Quart, Enum.EasingDirection.In):Play()
 
         local indexToRemove = nil
@@ -352,15 +358,8 @@ function MinimalGUI:CreateWindow(title, size)
         closeBtn.BackgroundColor3 = colors.Surface2
         closeBtn.TextColor3 = colors.TextMuted
 
-        local mainStroke = main:FindFirstChild('UIStroke')
-        if mainStroke then
-            mainStroke.Color = colors.Border
-        end
-
-        local mainShadow = main:FindFirstChild('DropShadow')
-        if mainShadow then
-            mainShadow.Color = colors.Shadow
-        end
+        -- UIStrokes colors are hardcoded white by the Stroke function, so no need to update their Color3 property here.
+        -- We only update elements that use background/text colors based on theme.
 
         for _, page in pairs(window.Pages) do
             if page._button and page._button.Parent then
@@ -375,6 +374,8 @@ function MinimalGUI:CreateWindow(title, size)
                     if currentTabStroke then Tween(currentTabStroke, { Transparency = 1 }, Config.Animation.Fast):Play() end
                 end
             end
+            -- For other elements, a full theme switch might require re-creation or complex binding
+            -- but the core elements (like main window, header, tabs) are handled here.
         end
     end
 
@@ -393,21 +394,21 @@ function MinimalGUI:CreateWindow(title, size)
     main.BorderSizePixel = 0
     main.Parent = gui
     Corner(main, Config.Radius.xl)
-    Stroke(main, window:getColors().Border, 1) -- Thinner main stroke
-    local mainShadow = DropShadow(main, Vector2.new(0, 8), window:getColors().Shadow, 0.9, 10) -- Subtle drop shadow
-    mainShadow.Name = "DropShadow"
+    Stroke(main, nil, 1) -- Main window's primary white border
+    local mainGlossEffect = FrameOutline(main, 5, 0.9, Enum.ApplyStrokeMode.Context) -- Subtle inner white glow for gloss
+    mainGlossEffect.Name = "MainGlossEffect"
     main.Transparency = 1 -- Start transparent for fade-in
 
     local header = Instance.new('Frame')
-    header.Size = UDim2.new(1, 0, 0, 52) -- Slightly shorter header
+    header.Size = UDim2.new(1, 0, 0, 52)
     header.BackgroundColor3 = window:getColors().Surface
     header.BorderSizePixel = 0
     header.Parent = main
-    Corner(header, Config.Radius.lg) -- Apply radius matching window on top
+    Corner(header, Config.Radius.xl) -- Apply radius matching window on top
 
     local headerSeparator = Instance.new('Frame')
     headerSeparator.Size = UDim2.new(1, -Config.Spacing.xl, 0, 1)
-    headerSeparator.Position = UDim2.new(0, Config.Spacing.lg, 1, 0) -- Adjusted position right at bottom edge
+    headerSeparator.Position = UDim2.new(0, Config.Spacing.lg, 1, 0)
     headerSeparator.BackgroundColor3 = window:getColors().BorderLight
     headerSeparator.BackgroundTransparency = 0.8
     headerSeparator.BorderSizePixel = 0
@@ -415,7 +416,7 @@ function MinimalGUI:CreateWindow(title, size)
 
     local titleText = Instance.new('TextLabel')
     titleText.Size = UDim2.new(0, 200, 0, 20)
-    titleText.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 16) -- Adjusted position
+    titleText.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 16)
     titleText.BackgroundTransparency = 1
     titleText.Text = title
     titleText.TextColor3 = window:getColors().Text
@@ -426,7 +427,7 @@ function MinimalGUI:CreateWindow(title, size)
 
     local themeBtn = Instance.new('TextButton')
     themeBtn.Size = UDim2.new(0, 28, 0, 28)
-    themeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 60, 0, 12) -- Adjusted for header height
+    themeBtn.Position = UDim2.new(1, -Config.Layout.EdgePadding - 60, 0, 12)
     themeBtn.BackgroundColor3 = window:getColors().Surface2
     themeBtn.BorderSizePixel = 0
     themeBtn.Text = '☀'
@@ -437,7 +438,7 @@ function MinimalGUI:CreateWindow(title, size)
     themeBtn.Parent = header
     Corner(themeBtn, 14)
 
-    local themeBtnStroke = Stroke(themeBtn, window:getColors().PrimaryHover, 1, 1)
+    local themeBtnStroke = Stroke(themeBtn, nil, 1, 1)
 
     themeBtn.MouseEnter:Connect(function()
         Tween(themeBtn, { BackgroundColor3 = window:getColors().Surface3, TextColor3 = window:getColors().Text,
@@ -471,7 +472,7 @@ function MinimalGUI:CreateWindow(title, size)
     closeBtn.Parent = header
     Corner(closeBtn, 14)
 
-    local closeBtnStroke = Stroke(closeBtn, window:getColors().Danger, 1, 1)
+    local closeBtnStroke = Stroke(closeBtn, nil, 1, 1)
 
     closeBtn.MouseEnter:Connect(function()
         Tween(closeBtn, { BackgroundColor3 = window:getColors().Danger, TextColor3 = window:getColors().Surface,
@@ -493,7 +494,7 @@ function MinimalGUI:CreateWindow(title, size)
             Transparency = 1,
             Position = UDim2.new(0.5, 0, 0.5, 0)
         }, Config.Animation.Slow, Config.Easing.Quart, Enum.EasingDirection.In):Play()
-        Tween(mainShadow, { Transparency = 1 }, Config.Animation.Slow):Play()
+        if mainGlossEffect then Tween(mainGlossEffect, { Transparency = 1 }, Config.Animation.Slow):Play() end
 
         task.wait(Config.Animation.Slow + 0.05)
         if gui and gui.Parent then
@@ -503,7 +504,7 @@ function MinimalGUI:CreateWindow(title, size)
 
     local tabContainer = Instance.new('Frame')
     tabContainer.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 0, 32)
-    tabContainer.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 60) -- Position after header
+    tabContainer.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 60) -- Header Height (52) + some spacing (8)
     tabContainer.BackgroundTransparency = 1
     tabContainer.BorderSizePixel = 0
     tabContainer.Parent = main
@@ -511,8 +512,10 @@ function MinimalGUI:CreateWindow(title, size)
     ListLayout(tabContainer, Config.Spacing.sm, Enum.FillDirection.Horizontal)
 
     local content = Instance.new('Frame')
-    content.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 1, -100) -- Adjust to new header and tab spacing
-    content.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 92) -- Position after tabContainer + some spacing
+    -- Calculate content position based on tab container's height and spacing
+    content.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, tabContainer.Position.Y.Offset + tabContainer.Size.Y.Offset + Config.Spacing.md)
+    -- Calculate content height based on remaining space from window bottom
+    content.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 0, Config.Layout.MaxHeight - content.Position.Y.Offset - Config.Spacing.xl)
     content.BackgroundTransparency = 1
     content.Parent = main
 
@@ -523,7 +526,8 @@ function MinimalGUI:CreateWindow(title, size)
             dragData.startPos = input.Position
             dragData.frameStart = main.Position
             main.ZIndex = 2 -- Bring to front when dragging
-            if mainShadow then Tween(mainShadow, {Transparency = 0.5}, Config.Animation.Fast):Play() end
+            -- Subtly adjust glossy effect for visual feedback when dragging
+            if mainGlossEffect then Tween(mainGlossEffect, {Transparency = 0.5, Thickness = 8}, Config.Animation.Fast):Play() end
         end
     end)
 
@@ -548,7 +552,7 @@ function MinimalGUI:CreateWindow(title, size)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragData.dragging = false
                 main.ZIndex = 1 -- Reset ZIndex
-                if mainShadow then Tween(mainShadow, {Transparency = 0.8}, Config.Animation.Fast):Play() end
+                if mainGlossEffect then Tween(mainGlossEffect, {Transparency = 0.9, Thickness = 5}, Config.Animation.Fast):Play() end
             end
         end)
     )
@@ -571,18 +575,18 @@ function MinimalGUI:CreateWindow(title, size)
         Corner(tabBtn, Config.Radius.md)
 
         local tabPadding = Instance.new('UIPadding')
-        tabPadding.PaddingLeft = UDim.new(0, 16) -- More padding for tabs
+        tabPadding.PaddingLeft = UDim.new(0, 16)
         tabPadding.PaddingRight = UDim.new(0, 16)
         tabPadding.Parent = tabBtn
 
-        local tabBtnStroke = Stroke(tabBtn, window:getColors().PrimaryHover, 1.5, 1) -- Slightly thicker stroke for active tab
+        local tabBtnStroke = Stroke(tabBtn, nil, 1.5, 1) -- Slightly thicker white stroke for active tab
         tabBtnStroke.Name = "TabButtonStroke"
 
         local pageFrame = Instance.new('ScrollingFrame')
         pageFrame.Size = UDim2.new(1, 0, 1, 0)
         pageFrame.BackgroundTransparency = 1
         pageFrame.BorderSizePixel = 0
-        pageFrame.ScrollBarThickness = 3 -- Thinner scrollbar
+        pageFrame.ScrollBarThickness = 3
         pageFrame.ScrollBarImageColor3 = window:getColors().Primary
         pageFrame.ScrollBarImageTransparency = 0.7
         pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -596,15 +600,14 @@ function MinimalGUI:CreateWindow(title, size)
 
         local pageLayout = ListLayout(pageFrame, Config.Layout.RowSpacing, Enum.FillDirection.Vertical)
 
-pageLayout.AbsoluteContentSize:GetPropertyChangedSignal('Y'):Connect(function()
-    pageFrame.CanvasSize = UDim2.new(
-        0,
-        0,
-        0,
-        pageLayout.AbsoluteContentSize.Y + Config.Spacing.xl * 2
-    )
-end)
-
+        pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            pageFrame.CanvasSize = UDim2.new(
+                0,
+                0,
+                0,
+                pageLayout.AbsoluteContentSize.Y + Config.Spacing.xl * 2
+            )
+        end)
 
         tabBtn.MouseButton1Click:Connect(function()
             for _, p in pairs(window.Pages) do
@@ -613,7 +616,7 @@ end)
                     Tween(p._button, {
                         BackgroundColor3 = window:getColors().Surface2,
                         TextColor3 = window:getColors().TextSecondary,
-                        Size = UDim2.new(0, p._button.AbsoluteSize.X, 0, 30) -- Use AbsoluteSize.X for robustness
+                        Size = UDim2.new(0, p._button.AbsoluteSize.X, 0, 30)
                     }, Config.Animation.Medium, Config.Easing.Interaction):Play()
                     local currentTabStroke = p._button:FindFirstChild("TabButtonStroke")
                     if currentTabStroke then Tween(currentTabStroke, { Transparency = 1 }, Config.Animation.Medium):Play() end
@@ -633,14 +636,16 @@ end)
             if window.CurrentPage ~= page then
                 Tween(tabBtn, { BackgroundColor3 = window:getColors().Surface3 }, Config.Animation.Fast):Play()
             end
-            Tween(tabBtnStroke, { Transparency = 0.5 }, Config.Animation.Fast):Play() -- Subtle stroke on hover
+            Tween(tabBtnStroke, { Transparency = 0.5 }, Config.Animation.Fast):Play() -- Subtle white stroke on hover
             Tween(tabBtn, { Size = UDim2.new(0, tabBtn.AbsoluteSize.X + 4, 0, 32), Position = UDim2.new(tabBtn.Position.X.Scale, tabBtn.Position.X.Offset -2, 0, tabBtn.Position.Y.Offset -1) }, Config.Animation.Fast, Config.Easing.Interaction):Play()
         end)
         tabBtn.MouseLeave:Connect(function()
             if window.CurrentPage ~= page then
                 Tween(tabBtn, { BackgroundColor3 = window:getColors().Surface2 }, Config.Animation.Fast):Play()
             end
-            Tween(tabBtnStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
+            -- Revert stroke transparency based on active state, if not current page, hide.
+            local targetTransparency = (window.CurrentPage == page) and 0 or 1
+            Tween(tabBtnStroke, { Transparency = targetTransparency }, Config.Animation.Fast):Play()
             Tween(tabBtn, { Size = UDim2.new(0, tabBtn.AbsoluteSize.X - 4, 0, 30), Position = UDim2.new(tabBtn.Position.X.Scale, tabBtn.Position.X.Offset +2, 0, tabBtn.Position.Y.Offset +1) }, Config.Animation.Fast, Config.Easing.Interaction):Play()
         end)
 
@@ -665,7 +670,7 @@ end)
             btn.Parent = container
             Corner(btn, Config.Radius.md)
 
-            local btnStroke = Stroke(btn, window:getColors().PrimaryHover, 1, 1)
+            local btnStroke = Stroke(btn, nil, 1, 1)
 
             btn.MouseEnter:Connect(function()
                 Tween(btn, { BackgroundColor3 = window:getColors().PrimaryHover,
@@ -701,7 +706,7 @@ end)
             container.BorderSizePixel = 0
             container.Parent = pageFrame
             Corner(container, Config.Radius.md)
-            Stroke(container, window:getColors().Border)
+            Stroke(container, nil, 1) -- White stroke for toggle container
 
             local label = Instance.new('TextLabel')
             label.Size = UDim2.new(1, -70, 1, 0)
@@ -715,7 +720,7 @@ end)
             label.Parent = container
 
             local toggle = Instance.new('TextButton')
-            toggle.Size = UDim2.new(0, 48, 0, 24) -- Slightly larger toggle
+            toggle.Size = UDim2.new(0, 48, 0, 24)
             toggle.Position = UDim2.new(1, -Config.Spacing.lg - 48, 0.5, -12)
             toggle.BackgroundColor3 = value and window:getColors().Primary or window:getColors().Surface3
             toggle.BorderSizePixel = 0
@@ -724,10 +729,10 @@ end)
             toggle.Parent = container
             Corner(toggle, 12)
 
-            local toggleStroke = Stroke(toggle, window:getColors().PrimaryHover, 1, 1)
+            local toggleStroke = Stroke(toggle, nil, 1, 1)
 
             local thumb = Instance.new('Frame')
-            thumb.Size = UDim2.new(0, 20, 0, 20) -- Slightly larger thumb
+            thumb.Size = UDim2.new(0, 20, 0, 20)
             thumb.Position = value and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 4, 0.5, -10)
             thumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             thumb.BorderSizePixel = 0
@@ -772,12 +777,12 @@ end)
             local value = defaultValue or min
 
             local container = Instance.new('Frame')
-            container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight + Config.Spacing.md) -- Adjusted height
+            container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight + Config.Spacing.md)
             container.BackgroundColor3 = window:getColors().Surface
             container.BorderSizePixel = 0
             container.Parent = pageFrame
             Corner(container, Config.Radius.md)
-            Stroke(container, window:getColors().Border)
+            Stroke(container, nil, 1) -- White stroke for slider container
 
             local headerFrame = Instance.new('Frame')
             headerFrame.Size = UDim2.new(1, 0, 0, 24)
@@ -808,14 +813,14 @@ end)
             valueLabel.Parent = headerFrame
 
             local track = Instance.new('Frame')
-            track.Size = UDim2.new(1, -Config.Spacing.lg * 2, 0, 6) -- Thinner track
+            track.Size = UDim2.new(1, -Config.Spacing.lg * 2, 0, 6)
             track.Position = UDim2.new(0, Config.Spacing.lg, 1, -Config.Spacing.md - 4)
             track.BackgroundColor3 = window:getColors().Surface3
             track.BorderSizePixel = 0
             track.Parent = container
             Corner(track, 3)
 
-            local trackStroke = Stroke(track, window:getColors().PrimaryHover, 1, 1)
+            local trackStroke = Stroke(track, nil, 1, 1)
 
             local fill = Instance.new('Frame')
             fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
@@ -831,7 +836,7 @@ end)
             thumb.BorderSizePixel = 0
             thumb.Parent = track
             Corner(thumb, 8)
-            Stroke(thumb, window:getColors().Primary, 1)
+            Stroke(thumb, nil, 1) -- White stroke for slider thumb
 
             local dragging = false
 
@@ -890,7 +895,7 @@ end)
             container.BorderSizePixel = 0
             container.Parent = pageFrame
             Corner(container, Config.Radius.md)
-            Stroke(container, window:getColors().Border)
+            Stroke(container, nil, 1) -- White stroke for dropdown container
 
             local label = Instance.new('TextLabel')
             label.Size = UDim2.new(0.4, 0, 1, 0)
@@ -904,7 +909,7 @@ end)
             label.Parent = container
 
             local dropdown = Instance.new('TextButton')
-            dropdown.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 30) -- Slightly taller dropdown button
+            dropdown.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 30)
             dropdown.Position = UDim2.new(0.4, 0, 0.5, -15)
             dropdown.BackgroundColor3 = window:getColors().Surface2
             dropdown.BorderSizePixel = 0
@@ -915,7 +920,7 @@ end)
             dropdown.ZIndex = 5
             Corner(dropdown, Config.Radius.sm)
 
-            local dropdownStroke = Stroke(dropdown, window:getColors().PrimaryHover, 1, 1)
+            local dropdownStroke = Stroke(dropdown, nil, 1, 1)
 
             local valueText = Instance.new('TextLabel')
             valueText.Size = UDim2.new(1, -32, 1, 0)
@@ -956,7 +961,7 @@ end)
             optionsList.ZIndex = 6
             optionsList.Parent = container
             Corner(optionsList, Config.Radius.sm)
-            Stroke(optionsList, window:getColors().BorderLight)
+            Stroke(optionsList, nil, 1) -- White stroke for dropdown list
             optionsList.ClipsDescendants = true
 
             ListLayout(optionsList, 0, Enum.FillDirection.Vertical)
@@ -1042,7 +1047,7 @@ end)
     -- Initial entrance animation for the main window
     main.Size = UDim2.new(size.X.Scale * 0.8, size.X.Offset * 0.8, size.Y.Scale * 0.8, size.Y.Offset * 0.8)
     Tween(main, { Size = size, Transparency = 0 }, Config.Animation.Slow, Config.Easing.Main, Enum.EasingDirection.Out):Play()
-    if mainShadow then Tween(mainShadow, {Transparency = 0.8}, Config.Animation.Slow, Config.Easing.Main, Enum.EasingDirection.Out):Play() end
+    if mainGlossEffect then Tween(mainGlossEffect, {Transparency = 0.9}, Config.Animation.Slow, Config.Easing.Main, Enum.EasingDirection.Out):Play() end
 
 
     return window
