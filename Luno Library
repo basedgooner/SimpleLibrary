@@ -2,7 +2,7 @@ local MinimalGUI = {}
 local TweenService = game:GetService('TweenService')
 local UserInputService = game:GetService('UserInputService')
 local CoreGui = game:GetService('CoreGui')
-
+print("loaded")
 if getgenv then
 	local existingGUI = getgenv().MinimalGUI_Instance
 	if existingGUI and typeof(existingGUI.DestroyAll) == "function" then
