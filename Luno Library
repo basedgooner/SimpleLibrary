@@ -908,7 +908,8 @@ function MinimalGUI:CreateWindow(title, size)
 			dropdownStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			dropdownStroke.Parent = dropdown
 
-			local valueText = Instance.new('TextLabel')
+			valueText = Instance.new('TextLabel')
+			valueText.Text = value
 			valueText.Size = UDim2.new(1, -28, 1, 0)
 			valueText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
 			valueText.BackgroundTransparency = 1
@@ -972,6 +973,9 @@ function MinimalGUI:CreateWindow(title, size)
 				optionBtn.BackgroundTransparency = 1
 				optionBtn.BorderSizePixel = 0
 				optionBtn.Text = option
+				local padding = Instance.new("UIPadding")
+				padding.PaddingLeft = UDim.new(0, Config.Spacing.md)
+				padding.Parent = optionBtn
 				optionBtn.TextColor3 = window:getColors().Text
 				optionBtn.TextSize = 13
 				optionBtn.Font = Config.Fonts.Regular
@@ -979,6 +983,16 @@ function MinimalGUI:CreateWindow(title, size)
 				optionBtn.LayoutOrder = i
 				optionBtn.AutoButtonColor = false
 				optionBtn.Parent = optionsList
+				if i > 1 then
+					local divider = Instance.new("Frame")
+					divider.Size = UDim2.new(1, -Config.Spacing.md * 2, 0, 1)
+					divider.Position = UDim2.new(0, Config.Spacing.md, 0, -1)
+					divider.BackgroundColor3 = window:getColors().BorderLight
+					divider.BorderSizePixel = 0
+					divider.ZIndex = optionBtn.ZIndex
+					divider.Parent = optionBtn
+				end
+
 				optionBtn.ZIndex = 6
 
 				optionBtn.MouseEnter:Connect(function()
