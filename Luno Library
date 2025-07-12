@@ -908,16 +908,16 @@ function MinimalGUI:CreateWindow(title, size)
 			dropdownStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			dropdownStroke.Parent = dropdown
 
-			valueText = Instance.new('TextLabel')
+			local valueText = Instance.new('TextLabel')
 			valueText.Text = value
 			valueText.Size = UDim2.new(1, -28, 1, 0)
 			valueText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
 			valueText.BackgroundTransparency = 1
-			valueText.Text = value
 			valueText.TextColor3 = window:getColors().Text
 			valueText.TextSize = 13
 			valueText.Font = Config.Fonts.Regular
 			valueText.TextXAlignment = Enum.TextXAlignment.Left
+			valueText.ZIndex = 5
 			valueText.Parent = dropdown
 
 			local arrow = Instance.new('TextLabel')
