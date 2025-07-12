@@ -971,22 +971,15 @@ function MinimalGUI:CreateWindow(title, size)
 				optionBtn.BackgroundColor3 = window:getColors().Surface
 				optionBtn.BackgroundTransparency = 1
 				optionBtn.BorderSizePixel = 0
-				optionBtn.Text = ''
+				optionBtn.Text = option
+				optionBtn.TextColor3 = window:getColors().Text
+				optionBtn.TextSize = 13
+				optionBtn.Font = Config.Fonts.Regular
+				optionBtn.TextXAlignment = Enum.TextXAlignment.Left
 				optionBtn.LayoutOrder = i
 				optionBtn.AutoButtonColor = false
 				optionBtn.Parent = optionsList
 				optionBtn.ZIndex = 6
-
-				local optionText = Instance.new('TextLabel')
-				optionText.Size = UDim2.new(1, -Config.Spacing.md * 2, 1, 0)
-				optionText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
-				optionText.BackgroundTransparency = 1
-				optionText.Text = option
-				optionText.TextColor3 = window:getColors().Text
-				optionText.TextSize = 13
-				optionText.Font = Config.Fonts.Regular
-				optionText.TextXAlignment = Enum.TextXAlignment.Left
-				optionText.Parent = optionBtn
 
 				optionBtn.MouseEnter:Connect(function()
 					Tween(optionBtn, {
