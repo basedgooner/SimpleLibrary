@@ -978,6 +978,7 @@ function MinimalGUI:CreateWindow(title, size)
 
 			dropdown.MouseButton1Click:Connect(toggleDropdown)
 
+			local selectedSet = {}
 			for i, option in ipairs(options) do
 				local optionBtn = Instance.new('TextButton')
 				optionBtn.Size = UDim2.new(1, 0, 0, 28)
@@ -1020,13 +1021,16 @@ function MinimalGUI:CreateWindow(title, size)
 
 optionBtn.MouseButton1Click:Connect(function()
 	if dropdownType == "multi" then
-		isSelected = not isSelected
-		optionBtn.BackgroundColor3 = isSelected and window:getColors().Primary or window:getColors().Surface
-		optionBtn.TextColor3 = isSelected and Color3.new(1, 1, 1) or window:getColors().Text
+		local isNowSelected = not selectedSet[option]
+		selectedSet[option] = isNowSelected
 
-		if isSelected then
+		if isNowSelected then
+			optionBtn.BackgroundColor3 = window:getColors().Primary
+			optionBtn.TextColor3 = Color3.new(1, 1, 1)
 			table.insert(value, option)
 		else
+			optionBtn.BackgroundColor3 = window:getColors().Surface
+			optionBtn.TextColor3 = window:getColors().Text
 			for i, v in ipairs(value) do
 				if v == option then
 					table.remove(value, i)
