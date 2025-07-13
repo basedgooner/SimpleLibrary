@@ -939,7 +939,6 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local optionsList = Instance.new('ScrollingFrame')
 			optionsList.ClipsDescendants = true
-			optionsList.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
 			optionsList.CanvasSize = UDim2.new(0, 0, 0, 0)
 			optionsList.ScrollingDirection = Enum.ScrollingDirection.Y
 			optionsList.ScrollBarThickness = 4
