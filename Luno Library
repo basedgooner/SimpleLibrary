@@ -1009,11 +1009,15 @@ function MinimalGUI:CreateWindow(title, size)
 				optionBtn.ZIndex = 6
 
 				optionBtn.MouseEnter:Connect(function()
-					Tween(optionBtn, {
-						BackgroundTransparency = 0,
-						BackgroundColor3 = window:getColors().Surface2,
-					}, Config.Animation.Fast):Play()
-				end)
+	if not selectedSet[option] then
+		Tween(optionBtn, {
+			BackgroundTransparency = 0,
+			BackgroundColor3 = window:getColors().Surface2,
+			TextColor3 = window:getColors().Text
+		}, Config.Animation.Fast):Play()
+	end
+end)
+
 				optionBtn.MouseLeave:Connect(function()
 	if not selectedSet[option] then
 		Tween(optionBtn, { BackgroundTransparency = 1 }, Config.Animation.Fast):Play()
