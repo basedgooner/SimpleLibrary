@@ -1015,8 +1015,14 @@ function MinimalGUI:CreateWindow(title, size)
 					}, Config.Animation.Fast):Play()
 				end)
 				optionBtn.MouseLeave:Connect(function()
-					Tween(optionBtn, { BackgroundTransparency = 1 }, Config.Animation.Fast):Play()
-				end)
+	if not selectedSet[option] then
+		Tween(optionBtn, { BackgroundTransparency = 1 }, Config.Animation.Fast):Play()
+	else
+		optionBtn.BackgroundColor3 = window:getColors().Primary
+		optionBtn.TextColor3 = Color3.new(1, 1, 1)
+	end
+end)
+
 				local isSelected = false
 
 optionBtn.MouseButton1Click:Connect(function()
