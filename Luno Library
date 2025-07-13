@@ -938,6 +938,7 @@ function MinimalGUI:CreateWindow(title, size)
 			end)
 
 			local optionsList = Instance.new('ScrollingFrame')
+			optionsList.ClipsDescendants = true
 			optionsList.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
 			optionsList.CanvasSize = UDim2.new(0, 0, 0, 0)
 			optionsList.ScrollingDirection = Enum.ScrollingDirection.Y
@@ -957,6 +958,10 @@ function MinimalGUI:CreateWindow(title, size)
 			local optionsLayout = Instance.new('UIListLayout')
 			optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
 			optionsLayout.Parent = optionsList
+
+			optionsLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+				optionsList.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
+			end)
 
 			local function toggleDropdown()
 				isOpen = not isOpen
