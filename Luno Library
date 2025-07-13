@@ -865,9 +865,10 @@ function MinimalGUI:CreateWindow(title, size)
 			return container, function() return value end
 		end
 
-		function page:CreateDropdown(text, options, defaultValue, callback)
+		function page:CreateDropdown(text, options, defaultValue, callback, dropdownType)
+			dropdownType = dropdownType or "single"
 			options = options or {}
-			local value = defaultValue or (options[1] or 'Select...')
+			local value = dropdownType == "multi" and {} or (defaultValue or (options[1] or 'Select...'))
 			local isOpen = false
 
 			local container = Instance.new('Frame')
@@ -909,7 +910,7 @@ function MinimalGUI:CreateWindow(title, size)
 			dropdownStroke.Parent = dropdown
 
 			local valueText = Instance.new('TextLabel')
-			valueText.Text = value
+			valueText.Text = dropdownType == "multi" and "Select..." or value
 			valueText.Size = UDim2.new(1, -28, 1, 0)
 			valueText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
 			valueText.BackgroundTransparency = 1
@@ -1015,12 +1016,35 @@ function MinimalGUI:CreateWindow(title, size)
 				optionBtn.MouseLeave:Connect(function()
 					Tween(optionBtn, { BackgroundTransparency = 1 }, Config.Animation.Fast):Play()
 				end)
-				optionBtn.MouseButton1Click:Connect(function()
-					value = option
-					valueText.Text = option
-					toggleDropdown()
-					if callback then callback(option) end
-				end)
+				local isSelected = false
+
+optionBtn.MouseButton1Click:Connect(function()
+	if dropdownType == "multi" then
+		isSelected = not isSelected
+		optionBtn.BackgroundColor3 = isSelected and window:getColors().Primary or window:getColors().Surface
+		optionBtn.TextColor3 = isSelected and Color3.new(1, 1, 1) or window:getColors().Text
+
+		if isSelected then
+			table.insert(value, option)
+		else
+			for i, v in ipairs(value) do
+				if v == option then
+					table.remove(value, i)
+					break
+				end
+			end
+		end
+
+		valueText.Text = #value > 0 and table.concat(value, ", ") or "Select..."
+		if callback then callback(value) end
+	else
+		value = option
+		valueText.Text = option
+		toggleDropdown()
+		if callback then callback(option) end
+	end
+end)
+
 			end
 
 			table.insert(page.Elements, container)
