@@ -937,7 +937,13 @@ function MinimalGUI:CreateWindow(title, size)
 				Tween(dropdownStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
 			end)
 
-			local optionsList = Instance.new('Frame')
+			local optionsList = Instance.new('ScrollingFrame')
+			optionsList.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
+			optionsList.CanvasSize = UDim2.new(0, 0, 0, 0)
+			optionsList.ScrollingDirection = Enum.ScrollingDirection.Y
+			optionsList.ScrollBarThickness = 4
+			optionsList.ScrollBarImageColor3 = window:getColors().Primary
+			optionsList.ScrollBarImageTransparency = 0.3
 			optionsList.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 0)
 			optionsList.Position = UDim2.new(0.4, 0, 1, 2)
 			optionsList.BackgroundColor3 = window:getColors().Surface
@@ -954,7 +960,8 @@ function MinimalGUI:CreateWindow(title, size)
 
 			local function toggleDropdown()
 				isOpen = not isOpen
-				local targetHeight = isOpen and (#options * 28) or 0
+				local maxHeight = 168 -- show up to 6 items before scrolling
+				local targetHeight = isOpen and math.min(#options * 28, maxHeight) or 0
 				optionsList.Visible = true
 				Tween(optionsList, { Size = UDim2.new(0.6, -Config.Spacing.lg, 0, targetHeight) }, Config.Animation.Medium):Play()
 				Tween(arrow, { Rotation = isOpen and 180 or 0 }, Config.Animation.Medium):Play()
