@@ -3,6 +3,8 @@ local TweenService = game:GetService('TweenService')
 local UserInputService = game:GetService('UserInputService')
 local CoreGui = game:GetService('CoreGui')
 
+local TOGGLE_KEYBIND = Enum.KeyCode.K
+
 if getgenv then
 	local existingGUI = getgenv().MinimalGUI_Instance
 	if existingGUI and typeof(existingGUI.DestroyAll) == "function" then
@@ -85,11 +87,11 @@ local function Corner(parent, radius)
 	return corner
 end
 
-local function Stroke(parent, color, thickness)
+local function Stroke(parent, color, thickness, transparency)
 	local stroke = Instance.new('UIStroke')
 	stroke.Color = color or Color3.new(1, 1, 1)
 	stroke.Thickness = thickness or 1
-	stroke.Transparency = 0
+	stroke.Transparency = transparency or 0
 	stroke.Parent = parent
 	return stroke
 end
@@ -97,11 +99,11 @@ end
 local notificationQueue = {}
 
 local function createNotification(message, notificationType)
-	-- Create a dedicated ScreenGui for notifications
 	local notifGui = Instance.new('ScreenGui')
 	notifGui.Name = 'MinimalGUI_Notifications'
 	notifGui.Parent = CoreGui
 	notifGui.ResetOnSpawn = false
+	notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local colors = Config.Colors.Light
 	local bgColor = colors.Surface
@@ -120,44 +122,47 @@ local function createNotification(message, notificationType)
 		iconText = "⚠"
 	end
 
-	-- Main notification frame
 	local notification = Instance.new('Frame')
 	notification.Size = UDim2.new(0, 380, 0, 72)
 	notification.Position = UDim2.new(1, -400, 0, 20 + (#notificationQueue * 84))
 	notification.BackgroundColor3 = bgColor
 	notification.BorderSizePixel = 0
 	notification.Parent = notifGui
+	notification.ZIndex = 10
 	Corner(notification, 16)
 
+	local shadow = Instance.new('ImageLabel')
+	shadow.Name = 'Shadow'
+	shadow.Size = UDim2.new(1, 20, 1, 20)
+	shadow.Position = UDim2.new(0, -10, 0, -10)
+	shadow.BackgroundTransparency = 1
+	shadow.Image = 'rbxasset://textures/ui/GuiImagePlaceholder.png'
+	shadow.ImageColor3 = Color3.new(0, 0, 0)
+	shadow.ImageTransparency = 0.8
+	shadow.ZIndex = 9
+	shadow.Parent = notification
 
+	local border = Stroke(notification, colors.BorderLight, 1, 0.3)
 
-	-- Subtle border
-	local border = Instance.new('UIStroke')
-	border.Color = colors.BorderLight
-	border.Thickness = 1
-	border.Transparency = 0.3
-	border.Parent = notification
-
-	-- Accent bar on the left
 	local accentBar = Instance.new('Frame')
 	accentBar.Size = UDim2.new(0, 4, 1, -16)
 	accentBar.Position = UDim2.new(0, 8, 0, 8)
 	accentBar.BackgroundColor3 = accentColor
 	accentBar.BorderSizePixel = 0
+	accentBar.ZIndex = 11
 	accentBar.Parent = notification
 	Corner(accentBar, 2)
 
-	-- Icon container
 	local iconContainer = Instance.new('Frame')
 	iconContainer.Size = UDim2.new(0, 40, 0, 40)
 	iconContainer.Position = UDim2.new(0, 20, 0, 16)
 	iconContainer.BackgroundColor3 = accentColor
-	iconContainer.BackgroundTransparency = 0.1
+	iconContainer.BackgroundTransparency = 0.9
 	iconContainer.BorderSizePixel = 0
+	iconContainer.ZIndex = 11
 	iconContainer.Parent = notification
 	Corner(iconContainer, 20)
 
-	-- Icon
 	local icon = Instance.new('TextLabel')
 	icon.Size = UDim2.new(1, 0, 1, 0)
 	icon.BackgroundTransparency = 1
@@ -167,9 +172,9 @@ local function createNotification(message, notificationType)
 	icon.Font = Config.Fonts.Bold
 	icon.TextXAlignment = Enum.TextXAlignment.Center
 	icon.TextYAlignment = Enum.TextYAlignment.Center
+	icon.ZIndex = 12
 	icon.Parent = iconContainer
 
-	-- Message text
 	local text = Instance.new('TextLabel')
 	text.Size = UDim2.new(1, -80, 1, -16)
 	text.Position = UDim2.new(0, 68, 0, 8)
@@ -182,9 +187,9 @@ local function createNotification(message, notificationType)
 	text.TextYAlignment = Enum.TextYAlignment.Center
 	text.TextWrapped = true
 	text.RichText = false
+	text.ZIndex = 11
 	text.Parent = notification
 
-	-- Close button
 	local closeBtn = Instance.new('TextButton')
 	closeBtn.Size = UDim2.new(0, 24, 0, 24)
 	closeBtn.Position = UDim2.new(1, -32, 0, 8)
@@ -196,10 +201,10 @@ local function createNotification(message, notificationType)
 	closeBtn.TextSize = 16
 	closeBtn.Font = Config.Fonts.Medium
 	closeBtn.AutoButtonColor = false
+	closeBtn.ZIndex = 11
 	closeBtn.Parent = notification
 	Corner(closeBtn, 12)
 
-	-- Close button hover effects
 	closeBtn.MouseEnter:Connect(function()
 		Tween(closeBtn, {
 			BackgroundTransparency = 0,
@@ -214,12 +219,12 @@ local function createNotification(message, notificationType)
 		}, Config.Animation.Fast):Play()
 	end)
 
-	-- Progress bar at bottom
 	local progressBar = Instance.new('Frame')
 	progressBar.Size = UDim2.new(1, -16, 0, 3)
 	progressBar.Position = UDim2.new(0, 8, 1, -11)
 	progressBar.BackgroundColor3 = colors.Surface3
 	progressBar.BorderSizePixel = 0
+	progressBar.ZIndex = 11
 	progressBar.Parent = notification
 	Corner(progressBar, 2)
 
@@ -228,20 +233,18 @@ local function createNotification(message, notificationType)
 	progressFill.BackgroundColor3 = accentColor
 	progressFill.BackgroundTransparency = 0.3
 	progressFill.BorderSizePixel = 0
+	progressFill.ZIndex = 12
 	progressFill.Parent = progressBar
 	Corner(progressFill, 2)
 
-	-- Entrance animation
 	notification.Position = UDim2.new(1, 20, 0, 20 + (#notificationQueue * 84))
 	
-	-- Animate entrance
 	Tween(notification, { 
 		Position = UDim2.new(1, -400, 0, 20 + (#notificationQueue * 84))
 	}, Config.Animation.Medium, Enum.EasingStyle.Back):Play()
 
 	table.insert(notificationQueue, {notification = notification, gui = notifGui})
 
-	-- Auto dismiss functionality
 	local dismissTween
 	local progressTween = Tween(progressFill, { Size = UDim2.new(0, 0, 1, 0) }, 3.5)
 	progressTween:Play()
@@ -250,14 +253,12 @@ local function createNotification(message, notificationType)
 		if dismissTween then return end
 		dismissTween = true
 		
-		-- Exit animations
 		Tween(notification, { 
 			Position = UDim2.new(1, 20, 0, 20 + (#notificationQueue * 84))
 		}, Config.Animation.Medium):Play()
 		
 		task.wait(Config.Animation.Medium)
 		
-		-- Remove from queue
 		for i, item in ipairs(notificationQueue) do
 			if item.notification == notification then
 				table.remove(notificationQueue, i)
@@ -268,10 +269,7 @@ local function createNotification(message, notificationType)
 		notifGui:Destroy()
 	end
 
-	-- Close button click
 	closeBtn.MouseButton1Click:Connect(dismissNotification)
-
-	-- Auto dismiss after progress completes
 	progressTween.Completed:Connect(dismissNotification)
 end
 
@@ -284,6 +282,9 @@ function MinimalGUI:CreateWindow(title, size)
 		CurrentPage = nil,
 		_connections = {},
 		_isDarkTheme = false,
+		_isVisible = true,
+		_gui = nil,
+		_main = nil,
 	}
 
 	self.CurrentWindow = window
@@ -296,21 +297,70 @@ function MinimalGUI:CreateWindow(title, size)
 		task.spawn(createNotification, message, notificationType or 'info')
 	end
 
+	function window:Toggle()
+		if not self._gui or not self._main then return end
+		
+		self._isVisible = not self._isVisible
+		if self._isVisible then
+			self._gui.Enabled = true
+			self._main.Size = UDim2.new(0, 0, 0, 0)
+			Tween(self._main, { Size = size }, Config.Animation.Medium, Enum.EasingStyle.Back):Play()
+		else
+			Tween(self._main, { Size = UDim2.new(0, 0, 0, 0) }, Config.Animation.Medium):Play()
+			task.wait(Config.Animation.Medium)
+			self._gui.Enabled = false
+		end
+	end
+
+	function window:Show()
+		if self._gui then
+			self._isVisible = true
+			self._gui.Enabled = true
+			self._main.Size = UDim2.new(0, 0, 0, 0)
+			Tween(self._main, { Size = size }, Config.Animation.Medium, Enum.EasingStyle.Back):Play()
+		end
+	end
+
+	function window:Hide()
+		if self._gui and self._main then
+			self._isVisible = false
+			Tween(self._main, { Size = UDim2.new(0, 0, 0, 0) }, Config.Animation.Medium):Play()
+			task.wait(Config.Animation.Medium)
+			self._gui.Enabled = false
+		end
+	end
+
 	local function updateTheme()
 		local colors = window:getColors()
-		main.BackgroundColor3 = colors.Background
-		header.BackgroundColor3 = colors.Surface
-		headerSeparator.BackgroundColor3 = colors.Border
-		titleText.TextColor3 = colors.Text
-		themeBtn.BackgroundColor3 = colors.Surface2
-		themeBtn.TextColor3 = colors.TextMuted
-		closeBtn.BackgroundColor3 = colors.Surface2
-		closeBtn.TextColor3 = colors.TextMuted
-
-		for _, stroke in pairs({ main:FindFirstChild('UIStroke') }) do
-			if stroke then
-				stroke.Color = colors.Border
+		
+		if window._main then
+			window._main.BackgroundColor3 = colors.Background
+			local mainStroke = window._main:FindFirstChild('UIStroke')
+			if mainStroke then
+				mainStroke.Color = colors.Border
 			end
+		end
+		
+		if window._header then
+			window._header.BackgroundColor3 = colors.Surface
+		end
+		
+		if window._headerSeparator then
+			window._headerSeparator.BackgroundColor3 = colors.Border
+		end
+		
+		if window._titleText then
+			window._titleText.TextColor3 = colors.Text
+		end
+		
+		if window._themeBtn then
+			window._themeBtn.BackgroundColor3 = colors.Surface2
+			window._themeBtn.TextColor3 = colors.TextMuted
+		end
+		
+		if window._closeBtn then
+			window._closeBtn.BackgroundColor3 = colors.Surface2
+			window._closeBtn.TextColor3 = colors.TextMuted
 		end
 
 		for _, page in pairs(window.Pages) do
@@ -323,6 +373,31 @@ function MinimalGUI:CreateWindow(title, size)
 					page._button.TextColor3 = colors.TextSecondary
 				end
 			end
+			
+			if page._frame then
+				page._frame.ScrollBarImageColor3 = colors.Primary
+			end
+			
+			for _, element in pairs(page.Elements) do
+				if element and element.Parent then
+					local bgColor = element:FindFirstChild('BackgroundColor3')
+					if bgColor and element.ClassName == 'Frame' then
+						element.BackgroundColor3 = colors.Surface
+						local stroke = element:FindFirstChild('UIStroke')
+						if stroke then
+							stroke.Color = colors.Border
+						end
+					end
+					
+					for _, child in pairs(element:GetDescendants()) do
+						if child:IsA('TextLabel') or child:IsA('TextButton') then
+							if child.Name ~= 'Arrow' and not child.Text:match('[▼×☀🌙]') then
+								child.TextColor3 = colors.Text
+							end
+						end
+					end
+				end
+			end
 		end
 	end
 
@@ -330,30 +405,50 @@ function MinimalGUI:CreateWindow(title, size)
 	gui.Name = 'MinimalGUI'
 	gui.Parent = CoreGui
 	gui.ResetOnSpawn = false
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	window._gui = gui
 
 	local main = Instance.new('Frame')
-	main.Size = size
+	main.Size = UDim2.new(0, 0, 0, 0)
 	main.Position = UDim2.new(0.5, 0, 0.5, 0)
 	main.AnchorPoint = Vector2.new(0.5, 0.5)
 	main.BackgroundColor3 = window:getColors().Background
 	main.BorderSizePixel = 0
 	main.Parent = gui
+	main.ZIndex = 1
 	Corner(main, Config.Radius.xl)
 	Stroke(main, window:getColors().Border, 1.5)
+
+	window._main = main
 
 	local header = Instance.new('Frame')
 	header.Size = UDim2.new(1, 0, 0, 56)
 	header.BackgroundColor3 = window:getColors().Surface
 	header.BorderSizePixel = 0
+	header.ZIndex = 2
 	header.Parent = main
 	Corner(header, Config.Radius.xl)
+
+	window._header = header
+
+	local headerMask = Instance.new('Frame')
+	headerMask.Size = UDim2.new(1, 0, 0, 32)
+	headerMask.Position = UDim2.new(0, 0, 1, -32)
+	headerMask.BackgroundColor3 = window:getColors().Surface
+	headerMask.BorderSizePixel = 0
+	headerMask.ZIndex = 2
+	headerMask.Parent = header
 
 	local headerSeparator = Instance.new('Frame')
 	headerSeparator.Size = UDim2.new(1, -40, 0, 1)
 	headerSeparator.Position = UDim2.new(0, 20, 1, -1)
 	headerSeparator.BackgroundColor3 = window:getColors().Border
 	headerSeparator.BorderSizePixel = 0
+	headerSeparator.ZIndex = 3
 	headerSeparator.Parent = header
+
+	window._headerSeparator = headerSeparator
 
 	local titleText = Instance.new('TextLabel')
 	titleText.Size = UDim2.new(0, 200, 0, 20)
@@ -364,7 +459,10 @@ function MinimalGUI:CreateWindow(title, size)
 	titleText.TextSize = 15
 	titleText.Font = Config.Fonts.Bold
 	titleText.TextXAlignment = Enum.TextXAlignment.Left
+	titleText.ZIndex = 3
 	titleText.Parent = header
+
+	window._titleText = titleText
 
 	local themeBtn = Instance.new('TextButton')
 	themeBtn.Size = UDim2.new(0, 28, 0, 28)
@@ -376,15 +474,13 @@ function MinimalGUI:CreateWindow(title, size)
 	themeBtn.TextSize = 14
 	themeBtn.Font = Config.Fonts.Medium
 	themeBtn.AutoButtonColor = false
+	themeBtn.ZIndex = 3
 	themeBtn.Parent = header
 	Corner(themeBtn, 14)
 
-	local themeBtnStroke = Instance.new('UIStroke')
-	themeBtnStroke.Thickness = 1
-	themeBtnStroke.Transparency = 1
-	themeBtnStroke.Color = window:getColors().PrimaryHover
-	themeBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	themeBtnStroke.Parent = themeBtn
+	window._themeBtn = themeBtn
+
+	local themeBtnStroke = Stroke(themeBtn, window:getColors().PrimaryHover, 1, 1)
 
 	themeBtn.MouseEnter:Connect(function()
 		Tween(themeBtn, {
@@ -416,15 +512,13 @@ function MinimalGUI:CreateWindow(title, size)
 	closeBtn.TextSize = 16
 	closeBtn.Font = Config.Fonts.Medium
 	closeBtn.AutoButtonColor = false
+	closeBtn.ZIndex = 3
 	closeBtn.Parent = header
 	Corner(closeBtn, 14)
 
-	local closeBtnStroke = Instance.new('UIStroke')
-	closeBtnStroke.Thickness = 1
-	closeBtnStroke.Transparency = 1
-	closeBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	closeBtnStroke.Color = window:getColors().Danger
-	closeBtnStroke.Parent = closeBtn
+	window._closeBtn = closeBtn
+
+	local closeBtnStroke = Stroke(closeBtn, window:getColors().Danger, 1, 1)
 
 	closeBtn.MouseEnter:Connect(function()
 		Tween(closeBtn, {
@@ -441,22 +535,7 @@ function MinimalGUI:CreateWindow(title, size)
 		Tween(closeBtnStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
 	end)
 	closeBtn.MouseButton1Click:Connect(function()
-		local shrinkTween = Tween(main, {
-			Size = UDim2.new(0, 0, 0, 0),
-			Position = UDim2.new(0.5, 0, 0.5, 0),
-		}, Config.Animation.Slow, Enum.EasingStyle.Quint)
-		
-		for _, desc in ipairs(main:GetDescendants()) do
-			if desc:IsA("GuiObject") then
-				pcall(function()
-					Tween(desc, { Size = desc.Size * 0.5 }, Config.Animation.Slow):Play()
-				end)
-			end
-		end
-
-		shrinkTween:Play()
-		task.wait(Config.Animation.Slow)
-		gui:Destroy()
+		window:Hide()
 	end)
 
 	local tabContainer = Instance.new('Frame')
@@ -464,6 +543,7 @@ function MinimalGUI:CreateWindow(title, size)
 	tabContainer.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 68)
 	tabContainer.BackgroundTransparency = 1
 	tabContainer.BorderSizePixel = 0
+	tabContainer.ZIndex = 2
 	tabContainer.Parent = main
 
 	local tabLayout = Instance.new('UIListLayout')
@@ -478,6 +558,7 @@ function MinimalGUI:CreateWindow(title, size)
 	content.Size = UDim2.new(1, -Config.Layout.EdgePadding * 2, 1, -116)
 	content.Position = UDim2.new(0, Config.Layout.EdgePadding, 0, 116)
 	content.BackgroundTransparency = 1
+	content.ZIndex = 2
 	content.Parent = main
 
 	local dragData = {}
@@ -516,6 +597,15 @@ function MinimalGUI:CreateWindow(title, size)
 		end)
 	)
 
+	table.insert(
+		window._connections,
+		UserInputService.InputBegan:Connect(function(input)
+			if input.KeyCode == TOGGLE_KEYBIND then
+				window:Toggle()
+			end
+		end)
+	)
+
 	function window:CreatePage(name)
 		local page = { Name = name, Elements = {}, _frame = nil, _button = nil }
 
@@ -530,6 +620,7 @@ function MinimalGUI:CreateWindow(title, size)
 		tabBtn.Font = Config.Fonts.Medium
 		tabBtn.LayoutOrder = #window.Pages + 1
 		tabBtn.AutoButtonColor = false
+		tabBtn.ZIndex = 3
 		tabBtn.Parent = tabContainer
 		Corner(tabBtn, 16)
 
@@ -538,12 +629,7 @@ function MinimalGUI:CreateWindow(title, size)
 		tabPadding.PaddingRight = UDim.new(0, 12)
 		tabPadding.Parent = tabBtn
 
-		local tabBtnStroke = Instance.new('UIStroke')
-		tabBtnStroke.Thickness = 1
-		tabBtnStroke.Transparency = 1
-		tabBtnStroke.Color = window:getColors().PrimaryHover
-		tabBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		tabBtnStroke.Parent = tabBtn
+		local tabBtnStroke = Stroke(tabBtn, window:getColors().PrimaryHover, 1, 1)
 
 		local pageFrame = Instance.new('ScrollingFrame')
 		pageFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -554,6 +640,7 @@ function MinimalGUI:CreateWindow(title, size)
 		pageFrame.ScrollBarImageTransparency = 0.3
 		pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 		pageFrame.Visible = false
+		pageFrame.ZIndex = 3
 		pageFrame.Parent = content
 
 		local pageLayout = Instance.new('UIListLayout')
@@ -577,11 +664,15 @@ function MinimalGUI:CreateWindow(title, size)
 
 		tabBtn.MouseButton1Click:Connect(function()
 			for _, p in pairs(window.Pages) do
-				p._frame.Visible = false
-				Tween(p._button, {
-					BackgroundColor3 = window:getColors().Surface2,
-					TextColor3 = window:getColors().TextSecondary,
-				}, Config.Animation.Medium):Play()
+				if p._frame then
+					p._frame.Visible = false
+				end
+				if p._button then
+					Tween(p._button, {
+						BackgroundColor3 = window:getColors().Surface2,
+						TextColor3 = window:getColors().TextSecondary,
+					}, Config.Animation.Medium):Play()
+				end
 			end
 			pageFrame.Visible = true
 			Tween(tabBtn, {
@@ -619,6 +710,7 @@ function MinimalGUI:CreateWindow(title, size)
 			local container = Instance.new('Frame')
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
 			container.BackgroundTransparency = 1
+			container.ZIndex = 4
 			container.Parent = pageFrame
 
 			local btn = Instance.new('TextButton')
@@ -630,15 +722,11 @@ function MinimalGUI:CreateWindow(title, size)
 			btn.TextSize = 14
 			btn.Font = Config.Fonts.Medium
 			btn.AutoButtonColor = false
+			btn.ZIndex = 5
 			btn.Parent = container
 			Corner(btn, Config.Radius.lg)
 
-			local btnStroke = Instance.new('UIStroke')
-			btnStroke.Thickness = 1
-			btnStroke.Transparency = 1
-			btnStroke.Color = window:getColors().PrimaryHover
-			btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-			btnStroke.Parent = btn
+			local btnStroke = Stroke(btn, window:getColors().PrimaryHover, 1, 1)
 
 			btn.MouseEnter:Connect(function()
 				Tween(
@@ -669,7 +757,7 @@ function MinimalGUI:CreateWindow(title, size)
 					Config.Animation.Fast
 				):Play()
 				if callback then
-					callback()
+					pcall(callback)
 				end
 			end)
 
@@ -684,6 +772,7 @@ function MinimalGUI:CreateWindow(title, size)
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
 			container.BackgroundColor3 = window:getColors().Surface
 			container.BorderSizePixel = 0
+			container.ZIndex = 4
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.lg)
 			Stroke(container, window:getColors().Border)
@@ -697,6 +786,7 @@ function MinimalGUI:CreateWindow(title, size)
 			label.TextSize = 14
 			label.Font = Config.Fonts.Regular
 			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.ZIndex = 5
 			label.Parent = container
 
 			local toggle = Instance.new('TextButton')
@@ -707,14 +797,11 @@ function MinimalGUI:CreateWindow(title, size)
 			toggle.BorderSizePixel = 0
 			toggle.Text = ''
 			toggle.AutoButtonColor = false
+			toggle.ZIndex = 5
 			toggle.Parent = container
 			Corner(toggle, 11)
 
-			local toggleStroke = Instance.new('UIStroke')
-			toggleStroke.Thickness = 1
-			toggleStroke.Transparency = 1
-			toggleStroke.Color = window:getColors().PrimaryHover
-			toggleStroke.Parent = toggle
+			local toggleStroke = Stroke(toggle, window:getColors().PrimaryHover, 1, 1)
 
 			local thumb = Instance.new('Frame')
 			thumb.Size = UDim2.new(0, 18, 0, 18)
@@ -722,6 +809,7 @@ function MinimalGUI:CreateWindow(title, size)
 				or UDim2.new(0, 2, 0.5, -9)
 			thumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			thumb.BorderSizePixel = 0
+			thumb.ZIndex = 6
 			thumb.Parent = toggle
 			Corner(thumb, 9)
 
@@ -743,7 +831,7 @@ function MinimalGUI:CreateWindow(title, size)
 						or UDim2.new(0, 2, 0.5, -9),
 				}, Config.Animation.Medium):Play()
 				if callback then
-					callback(value)
+					pcall(callback, value)
 				end
 			end)
 
@@ -761,6 +849,7 @@ function MinimalGUI:CreateWindow(title, size)
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight + 20)
 			container.BackgroundColor3 = window:getColors().Surface
 			container.BorderSizePixel = 0
+			container.ZIndex = 4
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.md)
 			Stroke(container, window:getColors().Border)
@@ -769,6 +858,7 @@ function MinimalGUI:CreateWindow(title, size)
 			headerFrame.Size = UDim2.new(1, 0, 0, 24)
 			headerFrame.Position = UDim2.new(0, 0, 0, Config.Spacing.md)
 			headerFrame.BackgroundTransparency = 1
+			headerFrame.ZIndex = 5
 			headerFrame.Parent = container
 
 			local label = Instance.new('TextLabel')
@@ -780,6 +870,7 @@ function MinimalGUI:CreateWindow(title, size)
 			label.TextSize = 14
 			label.Font = Config.Fonts.Regular
 			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.ZIndex = 6
 			label.Parent = headerFrame
 
 			local valueLabel = Instance.new('TextLabel')
@@ -791,6 +882,7 @@ function MinimalGUI:CreateWindow(title, size)
 			valueLabel.TextSize = 13
 			valueLabel.Font = Config.Fonts.Bold
 			valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+			valueLabel.ZIndex = 6
 			valueLabel.Parent = headerFrame
 
 			local track = Instance.new('TextButton')
@@ -805,20 +897,17 @@ function MinimalGUI:CreateWindow(title, size)
 			track.BorderSizePixel = 0
 			track.Text = ''
 			track.AutoButtonColor = false
+			track.ZIndex = 5
 			track.Parent = container
 			Corner(track, 4)
 
-			local trackStroke = Instance.new('UIStroke')
-			trackStroke.Thickness = 1
-			trackStroke.Transparency = 1
-			trackStroke.Color = window:getColors().PrimaryHover
-			trackStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-			trackStroke.Parent = track
+			local trackStroke = Stroke(track, window:getColors().PrimaryHover, 1, 1)
 
 			local fill = Instance.new('Frame')
 			fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
 			fill.BackgroundColor3 = window:getColors().Primary
 			fill.BorderSizePixel = 0
+			fill.ZIndex = 6
 			fill.Parent = track
 			Corner(fill, 4)
 
@@ -832,7 +921,9 @@ function MinimalGUI:CreateWindow(title, size)
 				value = math.round(min + (max - min) * percent)
 				valueLabel.Text = tostring(value)
 				Tween(fill, { Size = UDim2.new(percent, 0, 1, 0) }, Config.Animation.Fast):Play()
-				if callback then callback(value) end
+				if callback then 
+					pcall(callback, value) 
+				end
 			end
 
 			track.MouseEnter:Connect(function()
@@ -849,17 +940,20 @@ function MinimalGUI:CreateWindow(title, size)
 				end
 			end)
 
-			UserInputService.InputChanged:Connect(function(input)
+			local dragConnection1 = UserInputService.InputChanged:Connect(function(input)
 				if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
 					updateSlider(input)
 				end
 			end)
 
-			UserInputService.InputEnded:Connect(function(input)
+			local dragConnection2 = UserInputService.InputEnded:Connect(function(input)
 				if input.UserInputType == Enum.UserInputType.MouseButton1 then
 					dragging = false
 				end
 			end)
+
+			table.insert(window._connections, dragConnection1)
+			table.insert(window._connections, dragConnection2)
 
 			table.insert(page.Elements, container)
 			return container, function() return value end
@@ -875,6 +969,8 @@ function MinimalGUI:CreateWindow(title, size)
 			container.Size = UDim2.new(1, 0, 0, Config.Layout.RowHeight)
 			container.BackgroundColor3 = window:getColors().Surface
 			container.BorderSizePixel = 0
+			container.ZIndex = 4
+			container.ClipsDescendants = false
 			container.Parent = pageFrame
 			Corner(container, Config.Radius.md)
 			Stroke(container, window:getColors().Border)
@@ -888,6 +984,7 @@ function MinimalGUI:CreateWindow(title, size)
 			label.TextSize = 14
 			label.Font = Config.Fonts.Regular
 			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.ZIndex = 5
 			label.Parent = container
 
 			local dropdown = Instance.new('TextButton')
@@ -896,21 +993,16 @@ function MinimalGUI:CreateWindow(title, size)
 			dropdown.BackgroundColor3 = window:getColors().Surface2
 			dropdown.BorderSizePixel = 0
 			dropdown.Text = ''
-			dropdown.ClipsDescendants = true
+			dropdown.ClipsDescendants = false
 			dropdown.AutoButtonColor = false
-			dropdown.Parent = container
 			dropdown.ZIndex = 5
+			dropdown.Parent = container
 			Corner(dropdown, Config.Radius.sm)
 
-			local dropdownStroke = Instance.new('UIStroke')
-			dropdownStroke.Thickness = 1
-			dropdownStroke.Transparency = 1
-			dropdownStroke.Color = window:getColors().PrimaryHover
-			dropdownStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-			dropdownStroke.Parent = dropdown
+			local dropdownStroke = Stroke(dropdown, window:getColors().PrimaryHover, 1, 1)
 
 			local valueText = Instance.new('TextLabel')
-			valueText.Text = dropdownType == "multi" and "Select..." or value
+			valueText.Text = dropdownType == "multi" and "Select..." or tostring(value)
 			valueText.Size = UDim2.new(1, -28, 1, 0)
 			valueText.Position = UDim2.new(0, Config.Spacing.md, 0, 0)
 			valueText.BackgroundTransparency = 1
@@ -918,7 +1010,8 @@ function MinimalGUI:CreateWindow(title, size)
 			valueText.TextSize = 13
 			valueText.Font = Config.Fonts.Regular
 			valueText.TextXAlignment = Enum.TextXAlignment.Left
-			valueText.ZIndex = 5
+			valueText.ZIndex = 6
+			valueText.TextTruncate = Enum.TextTruncate.AtEnd
 			valueText.Parent = dropdown
 
 			local arrow = Instance.new('TextLabel')
@@ -929,6 +1022,7 @@ function MinimalGUI:CreateWindow(title, size)
 			arrow.TextColor3 = window:getColors().TextMuted
 			arrow.TextSize = 9
 			arrow.Font = Config.Fonts.Regular
+			arrow.ZIndex = 6
 			arrow.Parent = dropdown
 
 			dropdown.MouseEnter:Connect(function()
@@ -938,38 +1032,46 @@ function MinimalGUI:CreateWindow(title, size)
 				Tween(dropdownStroke, { Transparency = 1 }, Config.Animation.Fast):Play()
 			end)
 
-			local optionsList = Instance.new('ScrollingFrame')
-			optionsList.ClipsDescendants = true
-			optionsList.CanvasSize = UDim2.new(0, 0, 0, 0)
-			optionsList.ScrollingDirection = Enum.ScrollingDirection.Y
-			optionsList.ScrollBarThickness = 4
-			optionsList.ScrollBarImageColor3 = window:getColors().Primary
-			optionsList.ScrollBarImageTransparency = 0.3
+			local optionsList = Instance.new('Frame')
 			optionsList.Size = UDim2.new(0.6, -Config.Spacing.lg, 0, 0)
 			optionsList.Position = UDim2.new(0.4, 0, 1, 2)
 			optionsList.BackgroundColor3 = window:getColors().Surface
 			optionsList.BorderSizePixel = 0
 			optionsList.Visible = false
-			optionsList.ZIndex = 6
+			optionsList.ZIndex = 20
+			optionsList.ClipsDescendants = true
 			optionsList.Parent = container
 			Corner(optionsList, Config.Radius.sm)
 			Stroke(optionsList, window:getColors().BorderLight)
 
+			local optionsScrollFrame = Instance.new('ScrollingFrame')
+			optionsScrollFrame.Size = UDim2.new(1, 0, 1, 0)
+			optionsScrollFrame.BackgroundTransparency = 1
+			optionsScrollFrame.BorderSizePixel = 0
+			optionsScrollFrame.ScrollBarThickness = 4
+			optionsScrollFrame.ScrollBarImageColor3 = window:getColors().Primary
+			optionsScrollFrame.ScrollBarImageTransparency = 0.3
+			optionsScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+			optionsScrollFrame.ZIndex = 21
+			optionsScrollFrame.Parent = optionsList
+
 			local optionsLayout = Instance.new('UIListLayout')
 			optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-			optionsLayout.Parent = optionsList
+			optionsLayout.Parent = optionsScrollFrame
 
 			optionsLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
-				optionsList.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
+				optionsScrollFrame.CanvasSize = UDim2.new(0, 0, 0, optionsLayout.AbsoluteContentSize.Y)
 			end)
 
 			local function toggleDropdown()
 				isOpen = not isOpen
-				local maxHeight = 168 -- show up to 6 items before scrolling
+				local maxHeight = 168
 				local targetHeight = isOpen and math.min(#options * 28, maxHeight) or 0
 				optionsList.Visible = true
+				
 				Tween(optionsList, { Size = UDim2.new(0.6, -Config.Spacing.lg, 0, targetHeight) }, Config.Animation.Medium):Play()
 				Tween(arrow, { Rotation = isOpen and 180 or 0 }, Config.Animation.Medium):Play()
+				
 				if not isOpen then
 					task.wait(Config.Animation.Medium)
 					optionsList.Visible = false
@@ -985,80 +1087,84 @@ function MinimalGUI:CreateWindow(title, size)
 				optionBtn.BackgroundColor3 = window:getColors().Surface
 				optionBtn.BackgroundTransparency = 1
 				optionBtn.BorderSizePixel = 0
-				optionBtn.Text = option
-				local padding = Instance.new("UIPadding")
-				padding.PaddingLeft = UDim.new(0, Config.Spacing.md)
-				padding.Parent = optionBtn
+				optionBtn.Text = tostring(option)
 				optionBtn.TextColor3 = window:getColors().Text
 				optionBtn.TextSize = 13
 				optionBtn.Font = Config.Fonts.Regular
 				optionBtn.TextXAlignment = Enum.TextXAlignment.Left
 				optionBtn.LayoutOrder = i
 				optionBtn.AutoButtonColor = false
-				optionBtn.Parent = optionsList
+				optionBtn.ZIndex = 22
+				optionBtn.Parent = optionsScrollFrame
+				
+				local optionPadding = Instance.new("UIPadding")
+				optionPadding.PaddingLeft = UDim.new(0, Config.Spacing.md)
+				optionPadding.Parent = optionBtn
+
 				if i > 1 then
 					local divider = Instance.new("Frame")
 					divider.Size = UDim2.new(1, -Config.Spacing.md * 2, 0, 1)
 					divider.Position = UDim2.new(0, Config.Spacing.md, 0, -1)
 					divider.BackgroundColor3 = window:getColors().BorderLight
 					divider.BorderSizePixel = 0
-					divider.ZIndex = optionBtn.ZIndex
+					divider.ZIndex = 22
 					divider.Parent = optionBtn
 				end
 
-				optionBtn.ZIndex = 6
-
 				optionBtn.MouseEnter:Connect(function()
-	if not selectedSet[option] then
-		Tween(optionBtn, {
-			BackgroundTransparency = 0,
-			BackgroundColor3 = window:getColors().Surface2,
-			TextColor3 = window:getColors().Text
-		}, Config.Animation.Fast):Play()
-	end
-end)
+					if not selectedSet[option] then
+						Tween(optionBtn, {
+							BackgroundTransparency = 0,
+							BackgroundColor3 = window:getColors().Surface2,
+							TextColor3 = window:getColors().Text
+						}, Config.Animation.Fast):Play()
+					end
+				end)
 
 				optionBtn.MouseLeave:Connect(function()
-	if not selectedSet[option] then
-		Tween(optionBtn, { BackgroundTransparency = 1 }, Config.Animation.Fast):Play()
-	else
-		optionBtn.BackgroundColor3 = window:getColors().Primary
-		optionBtn.TextColor3 = Color3.new(1, 1, 1)
-	end
-end)
+					if not selectedSet[option] then
+						Tween(optionBtn, { BackgroundTransparency = 1 }, Config.Animation.Fast):Play()
+					else
+						optionBtn.BackgroundColor3 = window:getColors().Primary
+						optionBtn.TextColor3 = Color3.new(1, 1, 1)
+					end
+				end)
 
-				local isSelected = false
+				optionBtn.MouseButton1Click:Connect(function()
+					if dropdownType == "multi" then
+						local isNowSelected = not selectedSet[option]
+						selectedSet[option] = isNowSelected
 
-optionBtn.MouseButton1Click:Connect(function()
-	if dropdownType == "multi" then
-		local isNowSelected = not selectedSet[option]
-		selectedSet[option] = isNowSelected
+						if isNowSelected then
+							optionBtn.BackgroundTransparency = 0
+							optionBtn.BackgroundColor3 = window:getColors().Primary
+							optionBtn.TextColor3 = Color3.new(1, 1, 1)
+							table.insert(value, option)
+						else
+							optionBtn.BackgroundTransparency = 1
+							optionBtn.BackgroundColor3 = window:getColors().Surface
+							optionBtn.TextColor3 = window:getColors().Text
+							for j, v in ipairs(value) do
+								if v == option then
+									table.remove(value, j)
+									break
+								end
+							end
+						end
 
-		if isNowSelected then
-			optionBtn.BackgroundColor3 = window:getColors().Primary
-			optionBtn.TextColor3 = Color3.new(1, 1, 1)
-			table.insert(value, option)
-		else
-			optionBtn.BackgroundColor3 = window:getColors().Surface
-			optionBtn.TextColor3 = window:getColors().Text
-			for i, v in ipairs(value) do
-				if v == option then
-					table.remove(value, i)
-					break
-				end
-			end
-		end
-
-		valueText.Text = #value > 0 and table.concat(value, ", ") or "Select..."
-		if callback then callback(value) end
-	else
-		value = option
-		valueText.Text = option
-		toggleDropdown()
-		if callback then callback(option) end
-	end
-end)
-
+						valueText.Text = #value > 0 and table.concat(value, ", ") or "Select..."
+						if callback then 
+							pcall(callback, value) 
+						end
+					else
+						value = option
+						valueText.Text = tostring(option)
+						toggleDropdown()
+						if callback then 
+							pcall(callback, option) 
+						end
+					end
+				end)
 			end
 
 			table.insert(page.Elements, container)
@@ -1081,13 +1187,16 @@ end)
 
 	function window:Destroy()
 		for _, connection in pairs(window._connections) do
-			connection:Disconnect()
+			if connection then
+				connection:Disconnect()
+			end
 		end
-		gui:Destroy()
+		if gui then
+			gui:Destroy()
+		end
 	end
 
-	main.Size = UDim2.new(0, 0, 0, 0)
-	Tween(main, { Size = size }, Config.Animation.Slow, Enum.EasingStyle.Quint):Play()
+	Tween(main, { Size = size }, Config.Animation.Medium, Enum.EasingStyle.Back):Play()
 
 	return window
 end
@@ -1101,7 +1210,6 @@ function MinimalGUI:DestroyAll()
 		pcall(function() self.CurrentWindow:Destroy() end)
 	end
 
-	-- Clean up all notification GUIs
 	for _, item in ipairs(notificationQueue) do
 		if item.gui then
 			pcall(function() item.gui:Destroy() end)
